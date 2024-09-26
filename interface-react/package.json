@@ -1,5 +1,5 @@
 {
-  "name": "heartprotocol",
+  "name": "interface",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,11 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@ant-design/icons": "^5.5.1",
-    "@aptos-labs/ts-sdk": "^1.28.0",
     "@aptos-labs/wallet-adapter-ant-design": "^3.0.14",
     "@aptos-labs/wallet-adapter-react": "^3.7.0",
-    "antd": "^5.21.1",
+    "antd": "5.1.4",
+    "petra-plugin-wallet-adapter": "^0.4.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
