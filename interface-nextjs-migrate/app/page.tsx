@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+// @ts-ignore  
 import { Heart, Users, DollarSign } from 'lucide-react';
 import { useRouter } from 'next/navigation'
 
@@ -58,7 +59,7 @@ const LandingPage = () => {
   );
 };
 
-const FeatureCard = ({ icon, title, description }) => (
+const FeatureCard = ({ icon, title, description }: any) => (
   <div className="bg-white p-6 rounded-lg shadow-md">
     <div className="flex justify-center mb-4">{icon}</div>
     <h3 className="text-xl font-semibold mb-2 text-purple-700">{title}</h3>
