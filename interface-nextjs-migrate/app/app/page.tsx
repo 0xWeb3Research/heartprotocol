@@ -15,7 +15,7 @@ const Layout = ({ children, title }: any) => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header toggleSidebar={toggleSidebar} title={"Dashboard"} />
        
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-[#FAF5FF] p-6">
           {children}
         </main>
       </div>
