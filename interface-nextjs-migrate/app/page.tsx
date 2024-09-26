@@ -2,10 +2,14 @@
 
 import React from 'react';
 import { Heart, Users, DollarSign } from 'lucide-react';
+import { useRouter } from 'next/navigation'
+
 
 const LandingPage = () => {
+  const router = useRouter()
+
   const handleGetStarted = () => {
-    window.location.href = '/app';
+    router.push('/app')
   };
 
   return (
@@ -13,7 +17,7 @@ const LandingPage = () => {
       <header className="text-center mb-12">
         <img src="./black.png" alt="Heart Protocol Logo" className="w-52 h-52 mx-auto mb-4" />
         {/* <h1 className="text-5xl font-bold text-purple-800 mb-4">Heart Protocol</h1> */}
-        <p className="text-xl text-purple-600">Web3-based Matchmaking Platform</p>
+        <p className="text-xl text-purple-600">Heart Protocol: Earn to Find Love</p>
       </header>
 
       <main className="max-w-4xl text-center">
