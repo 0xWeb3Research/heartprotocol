@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
+import CreateProfileForm from '../components/CreateProfileForm';
 
 const Layout = ({ children, title }: any) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -16,6 +17,7 @@ const Layout = ({ children, title }: any) => {
         <Header toggleSidebar={toggleSidebar} title={"Dashboard"} />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-[#FAF5FF] p-6">
           {children}
+          <CreateProfileForm />
         </main>
       </div>
     </div>

@@ -30,6 +30,7 @@ module heartprotocol::core {
     const ERROR_DAILY_LIMIT_REACHED: u64 = 9;
 
     struct Profile has key, store {
+        name: String,
         bio: String,
         about_me: String,
         interests: vector<String>,
@@ -74,6 +75,7 @@ module heartprotocol::core {
     // User functions
 
     public entry fun create_profile(
+        name: String,
         account: &signer,
         bio: String,
         about_me: String,
@@ -94,6 +96,7 @@ module heartprotocol::core {
         let stake = coin::withdraw<AptosCoin>(account, STAKE_AMOUNT);
 
         let profile = Profile {
+            name,
             bio,
             about_me,
             interests,
