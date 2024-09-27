@@ -3,7 +3,20 @@ import React from 'react';
 import { Menu } from 'lucide-react';
 import { WalletSelector } from "@aptos-labs/wallet-adapter-ant-design";
 import "@aptos-labs/wallet-adapter-ant-design/dist/index.css";
-
+import {
+    NetworkName,
+    InputTransactionData,
+    WalletName,
+    Wallet,
+    useWallet,
+  } from "@aptos-labs/wallet-adapter-react";
+  import {
+    AccountAddressInput,
+    Aptos,
+    AptosConfig,
+    Hex,
+    Network,
+  } from "@aptos-labs/ts-sdk";
 // add type header 
 
 type HeaderProps = {
@@ -12,6 +25,14 @@ type HeaderProps = {
 };
 
 const Header = ({ toggleSidebar, title }: HeaderProps) => {
+
+const aptosConfig = new AptosConfig({ network: Network.TESTNET });
+const client = new Aptos(aptosConfig);
+
+const moduleName = process.env.NEXT_PUBLIC_MODULE_MODULE_NAME;
+const moduleAddress = process.env.NEXT_PUBLIC_MODULE_ADDRESS;
+
+
     return (
         <header className="bg-white shadow-sm z-10">
             <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">

@@ -86,15 +86,15 @@ export default function CreateProfileForm() {
 
     const payload = {
       function: `${moduleAddress}::${moduleName}::create_profile`,
-      type_arguments: [],
-      arguments: [
+      functionArguments: [
+        account.address,
         formData.name,
         formData.bio,
         formData.about_me,
         formData.interests.join(','),
         Array.from(new Uint8Array(imageBytes)),
         formData.location,
-        parseInt(formData.height),
+        formData.height ? parseInt(formData.height) : null,
         formData.gender,
         formData.work,
         formData.relationship_type
@@ -103,7 +103,7 @@ export default function CreateProfileForm() {
 
     try {
       const response = await signAndSubmitTransaction({ data: payload });
-      console.log(response);
+      console.log(response, "responsee");
       await checkProfile();
     } catch (error) {
       console.error("Error creating profile:", error);
