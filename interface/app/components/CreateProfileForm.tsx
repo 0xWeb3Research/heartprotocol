@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+import ProfileView from './ProfileView';
+import ProfileForm from './ProfileForm';
+import Loading from './Loading';
+import axios from 'axios';
 
 const aptosConfig = new AptosConfig({ network: Network.TESTNET });
 const client = new Aptos(aptosConfig);
@@ -8,16 +12,24 @@ const client = new Aptos(aptosConfig);
 const moduleAddress = process.env.NEXT_PUBLIC_MODULE_ADDRESS;
 const moduleName = "core";
 
-export default function ProfileForm() {
-  const {
-    account,
-    signAndSubmitTransaction,
-  } = useWallet();
+const pinataApiKey = process.env.NEXT_PUBLIC_PINATA_API_KEY;
+const pinataSecretApiKey = process.env.NEXT_PUBLIC_PINATA_SECRET_API_KEY;
+
+export default function ProfileFormContainer() {
+  const { account, signAndSubmitTransaction } = useWallet();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
-    userdata: ''
+    bio: '',
+    about_me: '',
+    interests: '',
+    image: null,
+    location: '',
+    height: '',
+    gender: '',
+    favoritechain: '',
+    relationship_type: ''
   });
   const [isEditing, setIsEditing] = useState(false);
 
@@ -44,11 +56,6 @@ export default function ProfileForm() {
   };
 
   const getProfile = async (userAddress) => {
-    console.log("userAddress", userAddress);
-    console.log("moduleAddress", moduleAddress);
-    console.log("moduleName", moduleName);
-    console.log('Fetching account resource');
-
     try {
       const result = await client.view({
         payload: {
@@ -57,11 +64,11 @@ export default function ProfileForm() {
           functionArguments: [userAddress],
         },
       });
-      console.log("result", result);
+
+      console.log("getProfile result", result);
       return result;
     } catch (error) {
       console.error("Error fetching profile:", error);
-      if (error.message) console.error("Error message:", error.message);
       return null;
     }
   };
@@ -69,27 +76,30 @@ export default function ProfileForm() {
   const checkProfile = async () => {
     try {
       const isInitialized = await checkAppStateInitialized();
-
       if (isInitialized) {
         const profileData = await getProfile(account?.address);
-        console.log("Profile data:", profileData); // Log the profile data to see its structure
-
         if (profileData && Array.isArray(profileData) && profileData.length >= 2) {
           setProfile({
             name: profileData[0],
-            userdata: profileData[1]
+            bio: profileData[1],
+            about_me: profileData[2],
+            interests: profileData[3],
+            image: profileData[4],
+            location: profileData[5],
+            height: profileData[6],
+            gender: profileData[7],
+            favoritechain: profileData[8],
+            relationship_type: profileData[9]
           });
         } else {
-          console.log("Profile not found or in unexpected format for this user");
-          setProfile(null); // or set to a default value
+          setProfile(null);
         }
       } else {
-        console.log("AppState not initialized");
-        setProfile(null); // or set to a default value
+        setProfile(null);
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
-      setProfile(null); // or set to a default value
+      setProfile(null);
     } finally {
       setLoading(false);
     }
@@ -100,21 +110,68 @@ export default function ProfileForm() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleImageChange = (file) => {
+    setFormData(prev => ({ ...prev, image: file }));
+  };
+
+  const uploadImageToPinata = async (file) => {
+    const url = `https://api.pinata.cloud/pinning/pinFileToIPFS`;
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const metadata = JSON.stringify({
+      name: file.name,
+    });
+    formData.append('pinataMetadata', metadata);
+
+    const options = JSON.stringify({
+      cidVersion: 0,
+    });
+    formData.append('pinataOptions', options);
+
+    try {
+      const response = await axios.post(url, formData, {
+        maxContentLength: 'Infinity',
+        headers: {
+          'Content-Type': `multipart/form-data; boundary=${formData._boundary}`,
+          'pinata_api_key': pinataApiKey,
+          'pinata_secret_api_key': pinataSecretApiKey,
+        },
+      });
+      return `https://gateway.pinata.cloud/ipfs/${response.data.IpfsHash}`;
+    } catch (error) {
+      console.error("Error uploading file to Pinata:", error);
+      return null;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    let imageUrl = '';
+    if (formData.image) {
+      imageUrl = await uploadImageToPinata(formData.image);
+    }
 
     const payload = {
       function: `${moduleAddress}::${moduleName}::create_profile`,
       functionArguments: [
         formData.name,
-        formData.userdata,
-      ]
+        formData.bio,
+        formData.about_me,
+        formData.interests,
+        imageUrl,
+        formData.location,
+        formData.height,
+        formData.gender,
+        formData.favoritechain,
+        formData.relationship_type
+      ],
     };
 
     try {
       const response = await signAndSubmitTransaction({ data: payload });
-      console.log(response, "response");
       await checkProfile();
     } catch (error) {
       console.error("Error creating profile:", error);
@@ -126,7 +183,15 @@ export default function ProfileForm() {
   const handleEdit = () => {
     setFormData({
       name: profile.name,
-      userdata: profile.userdata
+      bio: profile.bio,
+      about_me: profile.about_me,
+      interests: profile.interests,
+      image: profile.image,
+      location: profile.location,
+      height: profile.height,
+      gender: profile.gender,
+      favoritechain: profile.favoritechain,
+      relationship_type: profile.relationship_type
     });
     setIsEditing(true);
   };
@@ -135,17 +200,31 @@ export default function ProfileForm() {
     e.preventDefault();
     setLoading(true);
 
+    let imageUrl = formData.image;
+    if (formData.image && typeof formData.image !== 'string') {
+      imageUrl = await uploadImageToPinata(formData.image);
+    }
+
     const payload = {
       function: `${moduleAddress}::${moduleName}::update_profile`,
       functionArguments: [
         formData.name,
-        formData.userdata,
-      ]
+        formData.bio,
+        formData.about_me,
+        formData.interests,
+        imageUrl,
+        formData.location,
+        formData.height,
+        formData.gender,
+        formData.favoritechain,
+        formData.relationship_type
+      ],
     };
+
+    console.log("payload", payload);
 
     try {
       const response = await signAndSubmitTransaction({ data: payload });
-      console.log(response, "response");
       await checkProfile();
       setIsEditing(false);
     } catch (error) {
@@ -158,13 +237,21 @@ export default function ProfileForm() {
   const handleCancelEdit = () => {
     setFormData({
       name: profile.name,
-      userdata: profile.userdata
+      bio: profile.bio,
+      about_me: profile.about_me,
+      interests: profile.interests,
+      image: profile.image,
+      location: profile.location,
+      height: profile.height,
+      gender: profile.gender,
+      favoritechain: profile.favoritechain,
+      relationship_type: profile.relationship_type
     });
     setIsEditing(false);
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loading />;
   }
 
   return (
@@ -172,62 +259,17 @@ export default function ProfileForm() {
       <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl">
         <div className="p-8">
           {profile && !isEditing ? (
-            <div>
-              <h2 className="text-2xl font-bold mb-4">Your Profile</h2>
-              <p><strong>Name:</strong> {profile.name}</p>
-              <p><strong>User Data:</strong> {profile.userdata}</p>
-              <button
-                onClick={handleEdit}
-                className="mt-4 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                Edit Profile
-              </button>
-            </div>
+            <ProfileView profile={profile} onEdit={handleEdit} />
           ) : (
-            <form onSubmit={isEditing ? handleUpdateSubmit : handleSubmit} className="space-y-4">
-              <h2 className="text-2xl font-bold mb-4">{isEditing ? 'Edit Your Profile' : 'Create Your Profile'}</h2>
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name:</label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
-                />
-              </div>
-              <div>
-                <label htmlFor="userdata" className="block text-sm font-medium text-gray-700">User Data:</label>
-                <textarea
-                  id="userdata"
-                  name="userdata"
-                  value={formData.userdata}
-                  onChange={handleChange}
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
-                />
-              </div>
-              <div className="flex justify-between">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                >
-                  {loading ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Update Profile' : 'Create Profile')}
-                </button>
-                {isEditing && (
-                  <button
-                    type="button"
-                    onClick={handleCancelEdit}
-                    className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                  >
-                    Cancel Edit
-                  </button>
-                )}
-              </div>
-            </form>
+            <ProfileForm
+              formData={formData}
+              isEditing={isEditing}
+              loading={loading}
+              onChange={handleChange}
+              onImageChange={handleImageChange}
+              onSubmit={isEditing ? handleUpdateSubmit : handleSubmit}
+              onCancelEdit={handleCancelEdit}
+            />
           )}
         </div>
       </div>
