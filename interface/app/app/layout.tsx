@@ -18,7 +18,7 @@ const AccountProvider = ({ children }) => {
       setAccountData({
         address: account.address,
         publicKey: account.publicKey,
-        // Add any other relevant account data
+        connected: account.connected,
       });
     } else {
       setAccountData(null);

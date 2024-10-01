@@ -18,9 +18,10 @@ const SidebarItem = ({ icon, label, href, active }: any) => (
 const Sidebar = ({ isOpen, activePage }: any) => {
   return (
     <div className={`${isOpen ? 'w-64' : 'w-0'} bg-white shadow-md transition-all duration-300 overflow-hidden`}>
-      <div className="p-4 flex justify-center">
-        <img src="/black.png" alt="Heart Protocol Logo" className="w-42 h-42 mx-auto mb-4" />
-      </div>
+<div className="relative">
+  <img src="/black.png" alt="Heart Protocol Logo" className="w-42 h-42 mx-auto mb-4" />
+  <span className="absolute top-4 left-4 bg-[#9333EA] text-white text-xs font-bold px-2 py-1 rounded">Early Access Alpha</span>
+</div>
       <nav className="mt-8">
         <SidebarItem 
           icon={<LayoutGrid size={20} />} 

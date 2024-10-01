@@ -1,13 +1,10 @@
 [package]
-name = "HeartProtocol"
+name = "heartprotocol"
 version = "1.0.0"
 authors = ["Sidharth P"]
 
 [addresses]
-heartprotocol = "0x7001953577c6f390ac4ab6be1a0002b5865ffd34b99f11ab52860eb4aabe72f0"
-
-[dev-addresses]
-heartprotocol = "0x7001953577c6f390ac4ab6be1a0002b5865ffd34b99f11ab52860eb4aabe72f0"
+heartprotocol = "0x16bd58ab13b04581d61453ce5de803afef8085c2e652d81e6507447ed6f53c92"
 
 [dependencies]
 AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework", rev = "testnet" }
