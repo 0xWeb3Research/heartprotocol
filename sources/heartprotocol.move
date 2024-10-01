@@ -10,7 +10,15 @@ module heartprotocol::core {
 
     struct Profile has store {
         name: String,
-        userdata: String,
+        bio: String,
+        about_me: String,
+        interests: String,
+        image: String,
+        location: String,
+        height: String,
+        gender: String,
+        favoritechain: String,
+        relationship_type: String,
     }
 
     struct AppState has key {
@@ -28,7 +36,15 @@ module heartprotocol::core {
     public entry fun create_profile(
         account: &signer,
         name: String,
-        userdata: String,
+        bio: String,
+        about_me: String,
+        interests: String,
+        image: String,
+        location: String,
+        height: String,
+        gender: String,
+        favoritechain: String,
+        relationship_type: String,
     ) acquires AppState {
         let sender = signer::address_of(account);
 
@@ -43,14 +59,22 @@ module heartprotocol::core {
 
         let profile = Profile {
             name,
-            userdata,
+            bio,
+            about_me,
+            interests,
+            image,
+            location,
+            height,
+            gender,
+            favoritechain,
+            relationship_type,
         };
 
         table::add(&mut app_state.profiles, sender, profile);
     }
 
     #[view]
-    public fun get_profile(user: address): (String, String) acquires AppState {
+    public fun get_profile(user: address): (String, String, String, String, String, String, String, String, String, String) acquires AppState {
         assert!(exists<AppState>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
 
         let app_state = borrow_global<AppState>(@heartprotocol);
@@ -58,13 +82,32 @@ module heartprotocol::core {
         assert!(table::contains(&app_state.profiles, user), ERROR_PROFILE_NOT_FOUND);
 
         let profile = table::borrow(&app_state.profiles, user);
-        (profile.name, profile.userdata)
+        (
+            profile.name,
+            profile.bio,
+            profile.about_me,
+            profile.interests,
+            profile.image,
+            profile.location,
+            profile.height,
+            profile.gender,
+            profile.favoritechain,
+            profile.relationship_type,
+        )
     }
 
     entry public fun update_profile(
         account: &signer,
         name: String,
-        userdata: String,
+        bio: String,
+        about_me: String,
+        interests: String,
+        image: String,
+        location: String,
+        height: String,
+        gender: String,
+        favoritechain: String,
+        relationship_type: String,
     ) acquires AppState {
         let sender = signer::address_of(account);
 
@@ -76,6 +119,14 @@ module heartprotocol::core {
 
         let profile = table::borrow_mut(&mut app_state.profiles, sender);
         profile.name = name;
-        profile.userdata = userdata;
+        profile.bio = bio;
+        profile.about_me = about_me;
+        profile.interests = interests;
+        profile.image = image;
+        profile.location = location;
+        profile.height = height;
+        profile.gender = gender;
+        profile.favoritechain = favoritechain;
+        profile.relationship_type = relationship_type;
     }
 }
