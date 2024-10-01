@@ -60,4 +60,22 @@ module heartprotocol::core {
         let profile = table::borrow(&app_state.profiles, user);
         (profile.name, profile.userdata)
     }
+
+    entry public fun update_profile(
+        account: &signer,
+        name: String,
+        userdata: String,
+    ) acquires AppState {
+        let sender = signer::address_of(account);
+
+        assert!(exists<AppState>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
+
+        let app_state = borrow_global_mut<AppState>(@heartprotocol);
+
+        assert!(table::contains(&app_state.profiles, sender), ERROR_PROFILE_NOT_FOUND);
+
+        let profile = table::borrow_mut(&mut app_state.profiles, sender);
+        profile.name = name;
+        profile.userdata = userdata;
+    }
 }
