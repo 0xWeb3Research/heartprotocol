@@ -18,9 +18,13 @@ const SidebarItem = ({ icon, label, href, active }: any) => (
 const Sidebar = ({ isOpen, activePage }: any) => {
   return (
     <div className={`${isOpen ? 'w-64' : 'w-0'} bg-white shadow-md transition-all duration-300 overflow-hidden`}>
-<div className="relative">
-  <img src="/black.png" alt="Heart Protocol Logo" className="w-42 h-42 mx-auto mb-4" />
-  <span className="absolute top-4 left-4 bg-[#9333EA] text-white text-xs font-bold px-2 py-1 rounded">Early Access Alpha</span>
+<div className="relative flex flex-col items-center">
+  <div className="relative">
+    <img src="/black.png" alt="Heart Protocol Logo" className="w-32 h-32 mx-auto mb-4 mt-6 rounded-full shadow-lg" />
+    <span className="transform -translate-y-1/2 translate-x-1/2 bg-[#EA728C] text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
+      Early Access Alpha
+    </span>
+  </div>
 </div>
       <nav className="mt-8">
         <SidebarItem 
