@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
@@ -5,11 +6,24 @@ import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 const aptosConfig = new AptosConfig({ network: Network.TESTNET });
 const client = new Aptos(aptosConfig);
 
+
 const moduleAddress = process.env.NEXT_PUBLIC_MODULE_ADDRESS;
 const moduleName = "core";
 
 export default function ProfileForm() {
-  const { account, signAndSubmitTransaction } = useWallet();
+  const {
+    connect,
+    account,
+    network,
+    connected,
+    disconnect,
+    wallet,
+    wallets,
+    signAndSubmitTransaction,
+    signTransaction,
+    signMessage,
+    signMessageAndVerify,
+  } = useWallet();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
@@ -23,16 +37,71 @@ export default function ProfileForm() {
     }
   }, [account]);
 
-  const checkProfile = async () => {
+  const checkAppStateInitialized = async () => {
     try {
-      const resourceType = `${moduleAddress}::${moduleName}::Profile`;
-      const profileData = await client.getAccountResource({
-        accountAddress: account.address,
+      const resourceType = `${moduleAddress}::${moduleName}::AppState`;
+      await client.getAccountResource({
+        accountAddress: moduleAddress,
         resourceType: resourceType,
       });
-      setProfile(profileData);
+      return true;
     } catch (error) {
-      console.log("Profile not found");
+      if (error.message.includes("Resource not found")) {
+        return false;
+      }
+      throw error;
+    }
+  };
+
+  const getProfile = async (userAddress) => {
+    console.log("userAddress", userAddress);
+    console.log("moduleAddress", moduleAddress);
+    console.log("moduleName", moduleName);
+    console.log('Fetching account resource');
+
+    try {
+
+      const result = await client.view({
+        payload: {
+          function: `${moduleAddress}::${moduleName}::get_profile`,
+          typeArguments: [],
+          functionArguments: [userAddress],
+        },
+      });
+      console.log("result", result);
+
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      if (error.message) console.error("Error message:", error.message);
+      return null;
+    }
+  };
+
+  const checkProfile = async () => {
+    try {
+      const isInitialized = await checkAppStateInitialized();
+
+      if (isInitialized) {
+        const profileData = await getProfile(account?.address);
+        console.log("Profile data:", profileData); // Log the profile data to see its structure
+
+
+        if (profileData && Array.isArray(profileData) && profileData.length >= 2) {
+          setProfile({
+            name: profileData[0],
+            userdata: profileData[1]
+          });
+        } else {
+          console.log("Profile not found or in unexpected format for this user");
+          setProfile(null); // or set to a default value
+        }
+      } else {
+        console.log("AppState not initialized");
+        setProfile(null); // or set to a default value
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      setProfile(null); // or set to a default value
     } finally {
       setLoading(false);
     }
