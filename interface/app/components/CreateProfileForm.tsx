@@ -98,6 +98,7 @@ export default function ProfileFormContainer() {
       const isInitialized = await checkAppStateInitialized();
       if (isInitialized) {
         const profileData = await getProfile(account?.address);
+        console.log("profileData in craeteprofileform", profileData);
         if (profileData && Array.isArray(profileData) && profileData.length >= 2) {
           setProfile({
             name: profileData[0],
@@ -109,7 +110,8 @@ export default function ProfileFormContainer() {
             height: profileData[6],
             gender: profileData[7],
             favoritechain: profileData[8],
-            relationship_type: profileData[9]
+            relationship_type: profileData[9],
+            earned: profileData[10],
           });
         } else {
           setProfile(null);

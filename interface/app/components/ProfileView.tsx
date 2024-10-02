@@ -54,7 +54,14 @@ export default function ProfileView({ profile, onEdit, isActivated, onActivate }
             Activate Profile
           </button>
         )}
+        <button
+          type="button"
+          className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#EA728C] ml-2"
+        >
+        Earned: {profile?.earned ? parseInt(profile.earned) : 0} $APT
+        </button>
       </div>
     </div>
+    
   );
 }
