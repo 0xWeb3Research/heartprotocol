@@ -20,6 +20,7 @@ export default function ProfileFormContainer() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isActivated, setIsActivated] = useState(false);
+  const [matchmakerActivated, setMatchmakerActivated] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     bio: '',
@@ -37,26 +38,38 @@ export default function ProfileFormContainer() {
   useEffect(() => {
     if (account) {
       checkProfile();
-      checkActivationStatus();
+      // checkActivationStatus();
+      checkMatchmakerActivationStatus();
     }
   }, [account]);
 
-
-  const checkActivationStatus = async () => {
+  const checkMatchmakerActivationStatus = async () => {
     try {
       const result = await client.view({
         payload: {
-          function: `${moduleAddress}::${moduleName}::is_profile_activated`,
+          function: `${moduleAddress}::${moduleName}::is_matchmaker`,
           typeArguments: [],
           functionArguments: [account?.address],
         },
       });
 
-      console.log("is_profile_activated result", result);
-      setIsActivated(result[0] === true);
+      console.log("is_matchmakert", result);
+      setMatchmakerActivated(result[0] === true);
     } catch (error) {
-      console.error("Error fetching activation status:", error);
+      console.error("Error fetching matchmaker activation status:", error);
     }
+  }     
+
+  const checkActivationStatus = async (profile: any) => {
+      console.log("profile in checkActivationStatus", profile);
+      if (profile && Array.isArray(profile) && profile[10]){
+        console.log("profile[10]", profile[10]);
+        if (profile[10] === true) {
+          setIsActivated(true);
+        }
+      } else {
+        setIsActivated(false);
+      }
   }
 
   const checkAppStateInitialized = async () => {
@@ -98,6 +111,8 @@ export default function ProfileFormContainer() {
       const isInitialized = await checkAppStateInitialized();
       if (isInitialized) {
         const profileData = await getProfile(account?.address);
+        await checkActivationStatus(profileData);
+        console.log("profileData in craeteprofileform", profileData);
         if (profileData && Array.isArray(profileData) && profileData.length >= 2) {
           setProfile({
             name: profileData[0],
@@ -109,7 +124,8 @@ export default function ProfileFormContainer() {
             height: profileData[6],
             gender: profileData[7],
             favoritechain: profileData[8],
-            relationship_type: profileData[9]
+            relationship_type: profileData[9],
+            earned: profileData[10],
           });
         } else {
           setProfile(null);
@@ -292,13 +308,37 @@ export default function ProfileFormContainer() {
     }
   };
 
+  const handleMatchmakerActivation = async () => {
+    const payload = {
+      function: `${moduleAddress}::${moduleName}::become_matchmaker`,
+      typeArguments: [],
+      functionArguments: [],
+    };
+
+    try {
+      const response = await signAndSubmitTransaction({ data: payload });
+      setMatchmakerActivated(true);
+      console.log("activate_matchmaker response", response);
+    } catch (error) {
+      console.error("Error activating matchmaker:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl">
+    <div className="container mx-auto px-4 py-8 mt-[5%]">
+     <div className="max-w-lg mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-3xl">
         <div className="p-8">
           {profile && !isEditing ? (
-            <ProfileView profile={profile} onEdit={handleEdit} isActivated={isActivated}
-              onActivate={handleActivateProfile} />
+            <ProfileView
+              profile={profile}
+              onEdit={handleEdit}
+              isActivated={isActivated}
+              onActivate={handleActivateProfile}
+              onMatchmakerActivate={handleMatchmakerActivation}
+              matchmakerActivated={matchmakerActivated}
+            />
           ) : (
             <ProfileForm
               formData={formData}
