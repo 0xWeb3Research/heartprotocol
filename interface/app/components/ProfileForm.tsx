@@ -1,32 +1,32 @@
 import React, { useState } from 'react';
 
 const interestsList = [
-    'Decoding the Blockchain', 
-    'Exploring Virtual Worlds', 
-    'Crafting Smart Contracts', 
-    'Trading Meme Coins', 
-    'Jamming to Crypto Beats', 
-    'Binging on Crypto Documentaries', 
-    'Hiking through the Metaverse', 
-    'Leveling Up in Play-to-Earn Games', 
-    'Snapping NFT Art', 
-    'Creating Digital Masterpieces',
-    'Fitness for Crypto Gains', 
-    'Gardening Virtual Land', 
-    'Writing DeFi Guides', 
-    'Tech Hacking and Innovation', 
-    'Fashioning Avatars with Style', 
-    'Dancing at DAO Parties', 
-    'Yoga for Blockchain Balance', 
-    'Fishing for Rare Tokens', 
-    'Crafting Unique NFTs', 
-    'Volunteering in Web3 Communities',
-    'Crypto Trading',
-    'NFT Collecting',
-    'Yield Farming',
-    'Participating in DAOs',
-    'Gaming in the Metaverse',
-    'Normal Human Stuff'
+  'Decoding the Blockchain',
+  'Exploring Virtual Worlds',
+  'Crafting Smart Contracts',
+  'Trading Meme Coins',
+  'Jamming to Crypto Beats',
+  'Binging on Crypto Documentaries',
+  'Hiking through the Metaverse',
+  'Leveling Up in Play-to-Earn Games',
+  'Snapping NFT Art',
+  'Creating Digital Masterpieces',
+  'Fitness for Crypto Gains',
+  'Gardening Virtual Land',
+  'Writing DeFi Guides',
+  'Tech Hacking and Innovation',
+  'Fashioning Avatars with Style',
+  'Dancing at DAO Parties',
+  'Yoga for Blockchain Balance',
+  'Fishing for Rare Tokens',
+  'Crafting Unique NFTs',
+  'Volunteering in Web3 Communities',
+  'Crypto Trading',
+  'NFT Collecting',
+  'Yield Farming',
+  'Participating in DAOs',
+  'Gaming in the Metaverse',
+  'Normal Human Stuff'
 ];
 
 const blockchainChains = [
@@ -34,7 +34,8 @@ const blockchainChains = [
   'Stellar', 'VeChain', 'Tezos', 'Algorand', 'Cosmos', 'Elrond', 'Harmony', 'Fantom', 'Near', 'Hedera', 'Other'
 ];
 
-const heightWeightOptions = ['Short', 'Tall', 'Mid', 'Haha'];
+const heightOptions = ['Short', 'Tall', 'Mid', 'Haha'];
+const weightOptions = ['Heavy', 'Light', 'Feather', 'Haha'];
 
 export default function ProfileForm({ formData, isEditing, loading, onChange, onImageChange, onSubmit, onCancelEdit }) {
   const [image, setImage] = useState(null);
@@ -165,7 +166,7 @@ export default function ProfileForm({ formData, isEditing, loading, onChange, on
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
         >
           <option value="">Select Height</option>
-          {heightWeightOptions.map(option => (
+          {heightOptions.map(option => (
             <option key={option} value={option}>{option}</option>
           ))}
         </select>
@@ -181,7 +182,7 @@ export default function ProfileForm({ formData, isEditing, loading, onChange, on
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
         >
           <option value="">Select Weight</option>
-          {heightWeightOptions.map(option => (
+          {weightOptions.map(option => (
             <option key={option} value={option}>{option}</option>
           ))}
         </select>
@@ -229,12 +230,12 @@ export default function ProfileForm({ formData, isEditing, loading, onChange, on
         >
           <option value="">Select Relationship Type</option>
           <option value="single">Single</option>
-          <option value="in_a_relationship">In a Relationship</option>
+          <option value="committed">Committed</option>
           <option value="married">Married</option>
           <option value="complicated">It's Complicated</option>
         </select>
       </div>
-     
+
       <div className="flex justify-between">
         <button
           type="submit"
