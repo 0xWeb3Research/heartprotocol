@@ -69,7 +69,7 @@ export default function ProfileView({ profile, onEdit, isActivated, onActivate, 
           type="button"
           className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#EA728C]"
         >
-          Earned: {profile?.earned ? parseInt(profile.earned) : 0} $APT
+        Earned: {isNaN(parseInt(profile?.earned)) ? 0 : parseInt(profile.earned)} $APT
         </button>
         <button
           type="button"
