@@ -10,8 +10,10 @@ module heartprotocol::core {
     const ERROR_PROFILE_NOT_FOUND: u64 = 2;
     const ERROR_PROFILE_NOT_ACTIVATED: u64 = 3;
     const NOT_ENOUGH_BALANCE: u64 = 4;
+    const ERROR_INSUFFICIENT_FUNDS: u64 = 5;
 
     const ACTIVATION_COST: u64 = 100_000_000;
+    const MATCHMAKER_COST: u64 = 100_000_000;
 
     struct Profile has store {
         name: String,
@@ -25,6 +27,8 @@ module heartprotocol::core {
         favoritechain: String,
         relationship_type: String,
         activated: bool,
+        matchmaker: bool,
+        earned: u64,
     }
 
     struct AppState has key {
@@ -75,13 +79,15 @@ module heartprotocol::core {
             favoritechain,
             relationship_type,
             activated: false,
+            matchmaker: false,
+            earned: 0,
         };
 
         table::add(&mut app_state.profiles, sender, profile);
     }
 
     #[view]
-    public fun get_profile(user: address): (String, String, String, String, String, String, String, String, String, String, bool) acquires AppState {
+    public fun get_profile(user: address): (String, String, String, String, String, String, String, String, String, String, bool, bool, u64) acquires AppState {
         assert!(exists<AppState>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
 
         let app_state = borrow_global<AppState>(@heartprotocol);
@@ -101,6 +107,8 @@ module heartprotocol::core {
             profile.favoritechain,
             profile.relationship_type,
             profile.activated,
+            profile.matchmaker,
+            profile.earned,
         )
     }
 
@@ -163,7 +171,43 @@ module heartprotocol::core {
         profile.activated = true;
     }
 
+    entry public fun become_matchmaker(account: &signer) acquires AppState {
+        let sender = signer::address_of(account);
 
+        assert!(exists<AppState>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
+
+        let app_state = borrow_global_mut<AppState>(@heartprotocol);
+
+        assert!(table::contains(&app_state.profiles, sender), ERROR_PROFILE_NOT_FOUND);
+
+        let profile = table::borrow_mut(&mut app_state.profiles, sender);
+
+        // Define the amount to transfer (1 APT = 100000000 base units)
+        let amount = MATCHMAKER_COST;
+        let platform_address = @heartprotocol;
+
+        // Check if the account has enough balance
+        let balance = coin::balance<AptosCoin>(sender);
+        assert!(balance >= amount, NOT_ENOUGH_BALANCE);
+
+        // Transfer 1 APT to the platform contract address
+        coin::transfer<AptosCoin>(account, platform_address, amount);
+
+        profile.matchmaker = true;
+    }
+
+    #[view]
+    public fun is_matchmaker(user: address): bool acquires AppState {
+        assert!(exists<AppState>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
+
+        let app_state = borrow_global<AppState>(@heartprotocol);
+
+        assert!(table::contains(&app_state.profiles, user), ERROR_PROFILE_NOT_FOUND);
+
+        let profile = table::borrow(&app_state.profiles, user);
+        profile.matchmaker
+    }
+    
     fun deactivate_profile(account: &signer) acquires AppState {
         let sender = signer::address_of(account);
 
@@ -175,17 +219,5 @@ module heartprotocol::core {
 
         let profile = table::borrow_mut(&mut app_state.profiles, sender);
         profile.activated = false;
-    }
-
-    #[view]
-    public fun is_profile_activated(user: address): bool acquires AppState {
-        assert!(exists<AppState>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
-
-        let app_state = borrow_global<AppState>(@heartprotocol);
-
-        assert!(table::contains(&app_state.profiles, user), ERROR_PROFILE_NOT_FOUND);
-
-        let profile = table::borrow(&app_state.profiles, user);
-        profile.activated
     }
 }
