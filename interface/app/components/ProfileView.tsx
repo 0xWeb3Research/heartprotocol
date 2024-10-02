@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function ProfileView({ profile, onEdit }) {
+export default function ProfileView({ profile, onEdit, isActivated, onActivate }) {
   return (
     <div className="p-6 space-y-6">
       {profile.image && (
@@ -29,13 +29,31 @@ export default function ProfileView({ profile, onEdit }) {
           <p className="text-sm text-gray-700"><strong className="font-semibold">Relationship Type:</strong> {profile.relationship_type}</p>
         </div>
       </div>
-      <div className="flex justify-end mt-6">
+      <div className="flex justify-end mt-4">
         <button
+          type="button"
           onClick={onEdit}
           className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
           Edit Profile
         </button>
+        {isActivated ? (
+          <button
+            type="button"
+            disabled
+            className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 cursor-not-allowed ml-2"
+          >
+            Activated
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onActivate}
+            className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ml-2"
+          >
+            Activate Profile
+          </button>
+        )}
       </div>
     </div>
   );
