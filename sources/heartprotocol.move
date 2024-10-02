@@ -23,7 +23,7 @@ module heartprotocol::core {
         match: address,
     }
 
-    struct Profile has store {
+    struct Profile has store, copy {
         name: String,
         bio: String,
         about_me: String,
@@ -45,13 +45,21 @@ module heartprotocol::core {
         profiles: Table<address, Profile>,
     }
 
+    struct ProfileAddresses has key {
+        addresses: vector<address>,
+    }
+
     fun initialize(account: &signer) {
         if (!exists<AppState>(@heartprotocol)) {
             move_to(account, AppState {
                 profiles: table::new(),
             });
+            move_to(account, ProfileAddresses {
+                addresses: vector::empty<address>(),
+            });
         };
     }
+
 
     public entry fun create_profile(
         account: &signer,
@@ -65,7 +73,7 @@ module heartprotocol::core {
         gender: String,
         favoritechain: String,
         relationship_type: String,
-    ) acquires AppState {
+    ) acquires AppState, ProfileAddresses  {
         let sender = signer::address_of(account);
 
         // Initialize if AppState doesn't exist
@@ -96,7 +104,72 @@ module heartprotocol::core {
         };
 
         table::add(&mut app_state.profiles, sender, profile);
+        let profile_addresses = borrow_global_mut<ProfileAddresses>(@heartprotocol);
+        vector::push_back(&mut profile_addresses.addresses, sender);
     }
+
+    #[view]
+    public fun get_total_profiles(): u64 acquires ProfileAddresses {
+        assert!(exists<ProfileAddresses>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
+
+        let profile_addresses = borrow_global<ProfileAddresses>(@heartprotocol);
+        vector::length(&profile_addresses.addresses)
+    }
+
+    fun list_profiles_paginated(start_index: u64, limit: u64): vector<address> acquires ProfileAddresses {
+        assert!(exists<ProfileAddresses>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
+
+        let profile_addresses = borrow_global<ProfileAddresses>(@heartprotocol);
+        let total_profiles = vector::length(&profile_addresses.addresses);
+        
+        // Ensure start_index is within bounds
+        if (start_index >= total_profiles) {
+            return vector::empty<address>()
+        };
+
+        // Calculate the end index
+        let end_index = if (start_index + limit > total_profiles) {
+            total_profiles
+        } else {
+            start_index + limit
+        };
+
+        // Create a new vector to store the paginated results
+        let result = vector::empty<address>();
+        let i = start_index;
+        while (i < end_index) {
+            let addr = *vector::borrow(&profile_addresses.addresses, i);
+            vector::push_back(&mut result, addr);
+            i = i + 1;
+        };
+
+            result
+    }
+
+    fun get_profile_internal(user: address): Profile acquires AppState {
+        let app_state = borrow_global<AppState>(@heartprotocol);
+        assert!(table::contains(&app_state.profiles, user), ERROR_PROFILE_NOT_FOUND);
+        *table::borrow(&app_state.profiles, user)
+    }
+
+
+    #[view]
+    public fun get_paginated_profile_data(start_index: u64, limit: u64): vector<Profile> acquires AppState, ProfileAddresses {
+        let profile_addresses = list_profiles_paginated(start_index, limit);
+        let result = vector::empty<Profile>();
+
+        let i = 0;
+        let len = vector::length(&profile_addresses);
+        while (i < len) {
+            let addr = *vector::borrow(&profile_addresses, i);
+            let profile = get_profile_internal(addr);
+            vector::push_back(&mut result, profile);
+            i = i + 1;
+        };
+
+        result
+    }
+
 
     #[view]
     public fun get_profile(user: address): (String, String, String, String, String, String, String, String, String, String, bool, bool, u64, vector<Recommendation>, bool) acquires AppState {
@@ -285,4 +358,7 @@ module heartprotocol::core {
 
         vector::push_back(&mut profile.recommendations, recommendation);
     }
+
+
+
 }
