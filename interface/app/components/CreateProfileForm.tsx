@@ -19,6 +19,7 @@ export default function ProfileFormContainer() {
   const { account, signAndSubmitTransaction } = useWallet();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isActivated, setIsActivated] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     bio: '',
@@ -36,8 +37,27 @@ export default function ProfileFormContainer() {
   useEffect(() => {
     if (account) {
       checkProfile();
+      checkActivationStatus();
     }
   }, [account]);
+
+
+  const checkActivationStatus = async () => {
+    try {
+      const result = await client.view({
+        payload: {
+          function: `${moduleAddress}::${moduleName}::is_profile_activated`,
+          typeArguments: [],
+          functionArguments: [account?.address],
+        },
+      });
+
+      console.log("is_profile_activated result", result);
+      setIsActivated(result[0] === true);
+    } catch (error) {
+      console.error("Error fetching activation status:", error);
+    }
+  }
 
   const checkAppStateInitialized = async () => {
     try {
@@ -254,12 +274,31 @@ export default function ProfileFormContainer() {
     return <Loading />;
   }
 
+  const handleActivateProfile = async () => {
+    const payload = {
+      function: `${moduleAddress}::${moduleName}::activate_profile`,
+      typeArguments: [],
+      functionArguments: [],
+    };
+
+    try {
+      const response = await signAndSubmitTransaction({ data: payload });
+      console.log("activate_profile response", response);
+      setIsActivated(true);
+    } catch (error) {
+      console.error("Error activating profile:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl">
         <div className="p-8">
           {profile && !isEditing ? (
-            <ProfileView profile={profile} onEdit={handleEdit} />
+            <ProfileView profile={profile} onEdit={handleEdit} isActivated={isActivated}
+              onActivate={handleActivateProfile} />
           ) : (
             <ProfileForm
               formData={formData}

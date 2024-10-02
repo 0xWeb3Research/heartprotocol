@@ -4,7 +4,7 @@ version = "1.0.0"
 authors = ["Sidharth P"]
 
 [addresses]
-heartprotocol = "0xfdd6bfc2e6974e772e6a97074a9c68f33e3a54490a5c44e7a39cf0cef3a72170"
+heartprotocol = "0x94bfeeb5f92d04b75d898e29e901a775e90ac08d8f23651f28adcdcfa82f4e3c"
 
 [dependencies]
 AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework", rev = "testnet" }
