@@ -273,6 +273,7 @@ module heartprotocol::core {
 
         let matchmaker_profile = table::borrow(&app_state.profiles, sender);
         assert!(matchmaker_profile.matchmaker, ERROR_NOT_A_MATCHMAKER);
+        assert!(matchmaker_profile.activated, ERROR_PROFILE_NOT_ACTIVATED);
 
         let profile = table::borrow_mut(&mut app_state.profiles, recommended_profile);
         assert!(profile.is_public, ERROR_PROFILE_NOT_PUBLIC);
