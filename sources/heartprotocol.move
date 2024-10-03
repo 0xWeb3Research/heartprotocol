@@ -116,7 +116,7 @@ module heartprotocol::core {
         vector::length(&profile_addresses.addresses)
     }
 
-    fun list_profiles_paginated(start_index: u64, limit: u64): vector<address> acquires ProfileAddresses {
+    public fun list_profiles_paginated(start_index: u64, limit: u64): vector<address> acquires ProfileAddresses {
         assert!(exists<ProfileAddresses>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
 
         let profile_addresses = borrow_global<ProfileAddresses>(@heartprotocol);
@@ -146,7 +146,7 @@ module heartprotocol::core {
             result
     }
 
-    fun get_profile_internal(user: address): Profile acquires AppState {
+    public fun get_profile_internal(user: address): Profile acquires AppState {
         let app_state = borrow_global<AppState>(@heartprotocol);
         assert!(table::contains(&app_state.profiles, user), ERROR_PROFILE_NOT_FOUND);
         *table::borrow(&app_state.profiles, user)
