@@ -41,6 +41,11 @@ module heartprotocol::core {
         is_public: bool,
     }
 
+    struct ProfileWithAddress has store, copy {
+        address: address,
+        profile: Profile,
+    }
+
     struct AppState has key {
         profiles: Table<address, Profile>,
     }
@@ -59,7 +64,6 @@ module heartprotocol::core {
             });
         };
     }
-
 
     public entry fun create_profile(
         account: &signer,
@@ -143,7 +147,7 @@ module heartprotocol::core {
             i = i + 1;
         };
 
-            result
+        result
     }
 
     public fun get_profile_internal(user: address): Profile acquires AppState {
@@ -152,24 +156,26 @@ module heartprotocol::core {
         *table::borrow(&app_state.profiles, user)
     }
 
-
     #[view]
-    public fun get_paginated_profile_data(start_index: u64, limit: u64): vector<Profile> acquires AppState, ProfileAddresses {
+    public fun get_paginated_profile_data(start_index: u64, limit: u64): vector<ProfileWithAddress> acquires AppState, ProfileAddresses {
         let profile_addresses = list_profiles_paginated(start_index, limit);
-        let result = vector::empty<Profile>();
+        let result = vector::empty<ProfileWithAddress>();
 
         let i = 0;
         let len = vector::length(&profile_addresses);
         while (i < len) {
             let addr = *vector::borrow(&profile_addresses, i);
             let profile = get_profile_internal(addr);
-            vector::push_back(&mut result, profile);
+            let profile_with_address = ProfileWithAddress {
+                address: addr,
+                profile: profile,
+            };
+            vector::push_back(&mut result, profile_with_address);
             i = i + 1;
         };
 
         result
     }
-
 
     #[view]
     public fun get_profile(user: address): (String, String, String, String, String, String, String, String, String, String, bool, bool, u64, vector<Recommendation>, bool) acquires AppState {
@@ -358,7 +364,4 @@ module heartprotocol::core {
 
         vector::push_back(&mut profile.recommendations, recommendation);
     }
-
-
-
 }

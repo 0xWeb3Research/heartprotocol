@@ -19,7 +19,7 @@ export const Matchmaker = () => {
   const [profiles, setProfiles] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
-  const [transitionDirection, setTransitionDirection] = useState('');
+  const [fade, setFade] = useState(false);
 
   const handleAccountSelect = (account) => {
     setSelectedAccount(account);
@@ -41,7 +41,9 @@ export const Matchmaker = () => {
         },
       });
 
-      const publicProfiles = result[0].filter(profile => profile.is_public);
+      console.log("Profiles:", result);
+
+      const publicProfiles = result[0].filter(profile => profile.profile.is_public);
       setProfiles((prevProfiles) => [...prevProfiles, ...publicProfiles]); // Append new profiles to existing ones
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -49,18 +51,18 @@ export const Matchmaker = () => {
   };
 
   const handleLike = () => {
-    setTransitionDirection('left');
+    setFade(true);
     setTimeout(() => {
       setCurrentProfileIndex((prev) => (prev + 1) % profiles.length);
-      setTransitionDirection('');
+      setFade(false);
     }, 500);
   };
 
   const handleDislike = () => {
-    setTransitionDirection('right');
+    setFade(true);
     setTimeout(() => {
       setCurrentProfileIndex((prev) => (prev + 1) % profiles.length);
-      setTransitionDirection('');
+      setFade(false);
     }, 500);
   };
 
@@ -84,10 +86,10 @@ export const Matchmaker = () => {
           <Button onClick={prevPage} disabled={currentPage === 0}><ChevronLeft /></Button>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {profiles.map((account) => (
-              <Card key={account.name} className="cursor-pointer" onClick={() => handleAccountSelect(account)}>
+              <Card key={account.profile.name} className="cursor-pointer" onClick={() => handleAccountSelect(account)}>
                 <CardContent className="p-4">
-                  <img src={account.image} alt={account.name} className="w-32 h-32 sm:w-40 sm:h-40 md:w-52 md:h-52 rounded-full mx-auto" />
-                  <p className="mt-2 text-center font-semibold">{account.name}</p>
+                  <img src={account.profile.image} alt={account.profile.name} className="w-32 h-32 sm:w-40 sm:h-40 md:w-52 md:h-52 rounded-full mx-auto" />
+                  <p className="mt-2 text-center font-semibold">{account.profile.name}</p>
                 </CardContent>
               </Card>
             ))}
@@ -103,24 +105,24 @@ export const Matchmaker = () => {
               <Button onClick={generateMoreProfiles}>Generate More Profiles</Button>
             </div>
             {profiles.length > 0 && (
-              <Card key={profiles[currentProfileIndex].name} className={`transition-card ${transitionDirection}`}>
+              <Card key={profiles[currentProfileIndex].profile.name} className={`transition-opacity duration-500 ${fade ? 'opacity-0' : 'opacity-100'}`}>
                 <CardContent className="p-4 text-center">
                   <div className="flex flex-col items-center">
-                    <img src={profiles[currentProfileIndex].image} alt={profiles[currentProfileIndex].name} className="w-32 h-32 mx-auto rounded-full mb-4 border-4 border-indigo-500" />
-                    <p className="text-3xl font-bold text-gray-900 mb-2">{profiles[currentProfileIndex].name}</p>
-                    <p className="text-sm text-gray-600 mb-4">{profiles[currentProfileIndex].bio}</p>
+                    <img src={profiles[currentProfileIndex].profile.image} alt={profiles[currentProfileIndex].profile.name} className="w-32 h-32 mx-auto rounded-full mb-4 border-4 border-indigo-500" />
+                    <p className="text-3xl font-bold text-gray-900 mb-2">{profiles[currentProfileIndex].profile.name}</p>
+                    <p className="text-sm text-gray-600 mb-4">{profiles[currentProfileIndex].profile.bio}</p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
                     <div>
-                      <p className="text-sm text-gray-700"><strong className="font-semibold">About Me:</strong> {profiles[currentProfileIndex].about_me}</p>
-                      <p className="text-sm text-gray-700"><strong className="font-semibold">Interests:</strong> {profiles[currentProfileIndex].interests}</p>
-                      <p className="text-sm text-gray-700"><strong className="font-semibold">Location:</strong> {profiles[currentProfileIndex].location}</p>
+                      <p className="text-sm text-gray-700"><strong className="font-semibold">About Me:</strong> {profiles[currentProfileIndex].profile.about_me}</p>
+                      <p className="text-sm text-gray-700"><strong className="font-semibold">Interests:</strong> {profiles[currentProfileIndex].profile.interests}</p>
+                      <p className="text-sm text-gray-700"><strong className="font-semibold">Location:</strong> {profiles[currentProfileIndex].profile.location}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-700"><strong className="font-semibold">Height:</strong> {profiles[currentProfileIndex].height}</p>
-                      <p className="text-sm text-gray-700"><strong className="font-semibold">Gender:</strong> {profiles[currentProfileIndex].gender}</p>
-                      <p className="text-sm text-gray-700"><strong className="font-semibold">Favorite Chain:</strong> {profiles[currentProfileIndex].favoritechain}</p>
-                      <p className="text-sm text-gray-700"><strong className="font-semibold">Relationship Type:</strong> {profiles[currentProfileIndex].relationship_type}</p>
+                      <p className="text-sm text-gray-700"><strong className="font-semibold">Height:</strong> {profiles[currentProfileIndex].profile.height}</p>
+                      <p className="text-sm text-gray-700"><strong className="font-semibold">Gender:</strong> {profiles[currentProfileIndex].profile.gender}</p>
+                      <p className="text-sm text-gray-700"><strong className="font-semibold">Favorite Chain:</strong> {profiles[currentProfileIndex].profile.favoritechain}</p>
+                      <p className="text-sm text-gray-700"><strong className="font-semibold">Relationship Type:</strong> {profiles[currentProfileIndex].profile.relationship_type}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -138,21 +140,21 @@ export const Matchmaker = () => {
             <Card className="bg-white shadow-lg p-6 rounded-lg">
               <CardContent className="p-4 text-center">
                 <div className="flex flex-col items-center">
-                  <img src={selectedAccount.image} alt={selectedAccount.name} className="w-32 h-32 mx-auto rounded-full mb-4 border-4 border-indigo-500" />
-                  <p className="text-3xl font-bold text-gray-900 mb-2">{selectedAccount.name}</p>
-                  <p className="text-sm text-gray-600 mb-4">{selectedAccount.bio}</p>
+                  <img src={selectedAccount.profile.image} alt={selectedAccount.profile.name} className="w-32 h-32 mx-auto rounded-full mb-4 border-4 border-indigo-500" />
+                  <p className="text-3xl font-bold text-gray-900 mb-2">{selectedAccount.profile.name}</p>
+                  <p className="text-sm text-gray-600 mb-4">{selectedAccount.profile.bio}</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
                   <div>
-                    <p className="text-sm text-gray-700"><strong className="font-semibold">About Me:</strong> {selectedAccount.about_me}</p>
-                    <p className="text-sm text-gray-700"><strong className="font-semibold">Interests:</strong> {selectedAccount.interests}</p>
-                    <p className="text-sm text-gray-700"><strong className="font-semibold">Location:</strong> {selectedAccount.location}</p>
+                    <p className="text-sm text-gray-700"><strong className="font-semibold">About Me:</strong> {selectedAccount.profile.about_me}</p>
+                    <p className="text-sm text-gray-700"><strong className="font-semibold">Interests:</strong> {selectedAccount.profile.interests}</p>
+                    <p className="text-sm text-gray-700"><strong className="font-semibold">Location:</strong> {selectedAccount.profile.location}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-700"><strong className="font-semibold">Height:</strong> {selectedAccount.height}</p>
-                    <p className="text-sm text-gray-700"><strong className="font-semibold">Gender:</strong> {selectedAccount.gender}</p>
-                    <p className="text-sm text-gray-700"><strong className="font-semibold">Favorite Chain:</strong> {selectedAccount.favoritechain}</p>
-                    <p className="text-sm text-gray-700"><strong className="font-semibold">Relationship Type:</strong> {selectedAccount.relationship_type}</p>
+                    <p className="text-sm text-gray-700"><strong className="font-semibold">Height:</strong> {selectedAccount.profile.height}</p>
+                    <p className="text-sm text-gray-700"><strong className="font-semibold">Gender:</strong> {selectedAccount.profile.gender}</p>
+                    <p className="text-sm text-gray-700"><strong className="font-semibold">Favorite Chain:</strong> {selectedAccount.profile.favoritechain}</p>
+                    <p className="text-sm text-gray-700"><strong className="font-semibold">Relationship Type:</strong> {selectedAccount.profile.relationship_type}</p>
                   </div>
                 </div>
               </CardContent>

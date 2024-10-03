@@ -109,8 +109,8 @@ export default function ProfileFormContainer() {
 
   const checkPublicStatus = async (profile: any) => {
     console.log("profile in checkPublicStatus", profile);
-    if (profile && Array.isArray(profile) && profile[11]){
-      console.log("profile[11]", profile[11]);
+    if (profile && Array.isArray(profile) && profile[14]){
+      console.log("profile[14]", profile[14]);
       if (profile[14] === true) {
         setPublicActivate(true);
       }
