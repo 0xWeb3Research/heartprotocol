@@ -1,6 +1,7 @@
 'use client';
 
 import Header from '@/app/components/Header';
+import MatchPageContainer from '@/app/components/MatchPage';
 import Sidebar from '@/app/components/Sidebar';
 import React, { useState } from 'react';
 
@@ -16,6 +17,7 @@ const Layout = ({ children, title }: any) => {
         <Header toggleSidebar={toggleSidebar} title={"Match"} />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
           {children}
+          <MatchPageContainer />
         </main>
       </div>
     </div>

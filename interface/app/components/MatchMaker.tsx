@@ -175,8 +175,8 @@ export const Matchmaker = () => {
               </Card>
             )}
             <div className="flex justify-between mt-4">
-              <Button onClick={handleDislike} className="w-full bg-red-500 text-white mr-2">Skip</Button>
-              <Button onClick={handleLike} className="w-full bg-green-500 text-white ml-2">Recommend</Button>
+              <Button onClick={handleDislike} className="w-full  bg-[#EA728C] text-white mr-2">Skip</Button>
+              <Button onClick={handleLike} className="w-full  bg-pink-500 text-white ml-2">Recommend</Button>
             </div>
           </div>
         </div>
