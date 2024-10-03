@@ -20,14 +20,38 @@ export const Matchmaker = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
   const [fade, setFade] = useState(false);
+  const [walletConnectedProfile, setWalletConnectedProfile] = useState(null);
 
   const handleAccountSelect = (account) => {
     setSelectedAccount(account);
   };
 
+  const ConnectedProfile = async () => {
+    try {
+      const result = await client.view({
+        payload: {
+          function: `${moduleAddress}::${moduleName}::get_profile`,
+          typeArguments: [],
+          functionArguments: [account?.address],
+        },
+      });
+
+      console.log("Connected Profile:", result);
+      return result;
+
+      // if result[11] is not true show activate as matchmaker also show no data
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     if (account) {
       getProfiles(account?.address, currentPage * accountsPerPage, accountsPerPage);
+      ConnectedProfile().then((result) => {
+        setWalletConnectedProfile(result);
+      });
     }
   }, [account, currentPage]);
 
@@ -129,8 +153,8 @@ export const Matchmaker = () => {
               </Card>
             )}
             <div className="flex justify-between mt-4">
-              <Button onClick={handleDislike} className="w-full bg-red-500 text-white mr-2">Dislike</Button>
-              <Button onClick={handleLike} className="w-full bg-green-500 text-white ml-2">Like</Button>
+              <Button onClick={handleDislike} className="w-full bg-red-500 text-white mr-2">Skip</Button>
+              <Button onClick={handleLike} className="w-full bg-green-500 text-white ml-2">Recommend</Button>
             </div>
           </div>
         </div>
