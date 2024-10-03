@@ -21,6 +21,7 @@ export default function ProfileFormContainer() {
   const [loading, setLoading] = useState(true);
   const [isActivated, setIsActivated] = useState(false);
   const [matchmakerActivated, setMatchmakerActivated] = useState(false);
+  const [publicActivate, setPublicActivate] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     bio: '',
@@ -106,12 +107,27 @@ export default function ProfileFormContainer() {
     }
   };
 
+  const checkPublicStatus = async (profile: any) => {
+    console.log("profile in checkPublicStatus", profile);
+    if (profile && Array.isArray(profile) && profile[14]){
+      console.log("profile[14]", profile[14]);
+      if (profile[14] === true) {
+        setPublicActivate(true);
+      }
+    } else {
+      setPublicActivate(false);
+    }
+  }
+
   const checkProfile = async () => {
     try {
       const isInitialized = await checkAppStateInitialized();
       if (isInitialized) {
         const profileData = await getProfile(account?.address);
         await checkActivationStatus(profileData);
+        await checkPublicStatus(profileData);
+
+
         console.log("profileData in craeteprofileform", profileData);
         if (profileData && Array.isArray(profileData) && profileData.length >= 2) {
           setProfile({
@@ -326,6 +342,24 @@ export default function ProfileFormContainer() {
     }
   };
 
+const handlePublicActivate = async () => {
+    const payload = {
+      function: `${moduleAddress}::${moduleName}::toggle_public_status`,
+      typeArguments: [],
+      functionArguments: [],
+    };
+
+    try {
+      const response = await signAndSubmitTransaction({ data: payload });
+      setPublicActivate(prevState => !prevState);
+      console.log("activate_public response", response);
+    } catch (error) {
+      console.error("Error activating public:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 mt-[5%]">
      <div className="max-w-lg mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-3xl">
@@ -337,6 +371,8 @@ export default function ProfileFormContainer() {
               isActivated={isActivated}
               onActivate={handleActivateProfile}
               onMatchmakerActivate={handleMatchmakerActivation}
+              onPublicActivate={handlePublicActivate}
+              publicActivate={publicActivate}
               matchmakerActivated={matchmakerActivated}
             />
           ) : (

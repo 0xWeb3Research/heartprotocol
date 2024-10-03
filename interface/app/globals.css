@@ -8,3 +8,15 @@
 body {
     font-family: 'Plus Jakarta Sans', sans-serif;
 }
+
+.transition-card {
+    transition: transform 0.5s ease-in-out;
+  }
+  
+  .transition-card.left {
+    transform: translateX(-100%);
+  }
+  
+  .transition-card.right {
+    transform: translateX(100%);
+  }
