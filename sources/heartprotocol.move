@@ -14,12 +14,16 @@ module heartprotocol::core {
     const ERROR_INSUFFICIENT_FUNDS: u64 = 5;
     const ERROR_NOT_A_MATCHMAKER: u64 = 6;
     const ERROR_PROFILE_NOT_PUBLIC: u64 = 7;
+    const ERROR_RECOMMENDATION_ALREADY_EXISTS: u64 = 8; 
 
-    const ACTIVATION_COST: u64 = 100_000_000;
-    const MATCHMAKER_COST: u64 = 100_000_000;
+    const ACTIVATION_COST: u64 = 100_000;
+    const MATCHMAKER_COST: u64 = 100_000;
+    // const MATCHMAKER_COST: u64 = 100_000_000;
+    // const ACTIVATION_COST: u64 = 100_000_000;
 
     struct Recommendation has store, copy {
         recommender: address,
+        profile: address,
         match: address,
     }
 
@@ -340,7 +344,8 @@ module heartprotocol::core {
         profile.is_public = !profile.is_public;
     }
 
-    entry public fun add_recommendation(account: &signer, recommended_profile: address) acquires AppState {
+    // gotta check if recommendation already exists
+    entry public fun add_recommendation(account: &signer, recommender: address, match_profile: address) acquires AppState {
         let sender = signer::address_of(account);
 
         assert!(exists<AppState>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
@@ -348,20 +353,28 @@ module heartprotocol::core {
         let app_state = borrow_global_mut<AppState>(@heartprotocol);
 
         assert!(table::contains(&app_state.profiles, sender), ERROR_PROFILE_NOT_FOUND);
-        assert!(table::contains(&app_state.profiles, recommended_profile), ERROR_PROFILE_NOT_FOUND);
+        assert!(table::contains(&app_state.profiles, recommender), ERROR_PROFILE_NOT_FOUND);
+        assert!(table::contains(&app_state.profiles, match_profile), ERROR_PROFILE_NOT_FOUND);
 
         let matchmaker_profile = table::borrow(&app_state.profiles, sender);
         assert!(matchmaker_profile.matchmaker, ERROR_NOT_A_MATCHMAKER);
         assert!(matchmaker_profile.activated, ERROR_PROFILE_NOT_ACTIVATED);
 
-        let profile = table::borrow_mut(&mut app_state.profiles, recommended_profile);
-        assert!(profile.is_public, ERROR_PROFILE_NOT_PUBLIC);
+        let recommender_profile = table::borrow_mut(&mut app_state.profiles, recommender);
+        assert!(recommender_profile.is_public, ERROR_PROFILE_NOT_PUBLIC);
 
         let recommendation = Recommendation {
             recommender: sender,
-            match: recommended_profile,
+            profile: recommender,
+            match: match_profile,
         };
 
-        vector::push_back(&mut profile.recommendations, recommendation);
+        // Add the recommendation to the recommender's list
+        vector::push_back(&mut recommender_profile.recommendations, recommendation);
+
+        // Add the recommendation to the match's recommendations list
+        // let match_profile_mut = table::borrow_mut(&mut app_state.profiles, match_profile);
+        // vector::push_back(&mut match_profile_mut.recommendations, recommendation);
     }
+
 }

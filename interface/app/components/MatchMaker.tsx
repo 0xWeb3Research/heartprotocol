@@ -16,6 +16,7 @@ const accountsPerPage = 4;
 export const Matchmaker = () => {
   const { account, signAndSubmitTransaction } = useWallet();
   const [selectedAccount, setSelectedAccount] = useState(null);
+  const [recommendations, setRecommendations] = useState(null);
   const [profiles, setProfiles] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
@@ -87,6 +88,26 @@ export const Matchmaker = () => {
   };
 
   const handleLike = async () => {
+
+    console.log("Selected Account:", selectedAccount);
+    console.log("Current Profile:", profiles[currentProfileIndex]);
+
+    const payload = {
+      function: `${moduleAddress}::${moduleName}::add_recommendation`,
+      functionArguments: [
+        selectedAccount?.address,
+        profiles[currentProfileIndex]?.address
+      ],
+    };
+
+    try {
+      const response = await signAndSubmitTransaction({ data: payload });
+    } catch (error) {
+      console.error("Error creating profile:", error);
+    } finally {
+    }
+
+
     setFade(true);
     setTimeout(() => {
       setCurrentProfileIndex((prev) => (prev + 1) % profiles.length);
