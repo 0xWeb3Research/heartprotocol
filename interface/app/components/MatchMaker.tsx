@@ -74,22 +74,6 @@ export const Matchmaker = () => {
     }
   };
 
-  const handleLike = () => {
-    setFade(true);
-    setTimeout(() => {
-      setCurrentProfileIndex((prev) => (prev + 1) % profiles.length);
-      setFade(false);
-    }, 500);
-  };
-
-  const handleDislike = () => {
-    setFade(true);
-    setTimeout(() => {
-      setCurrentProfileIndex((prev) => (prev + 1) % profiles.length);
-      setFade(false);
-    }, 500);
-  };
-
   const nextPage = () => {
     setCurrentPage((prev) => prev + 1);
   };
@@ -102,6 +86,23 @@ export const Matchmaker = () => {
     getProfiles(account?.address, profiles.length, accountsPerPage);
   };
 
+  const handleLike = async () => {
+    setFade(true);
+    setTimeout(() => {
+      setCurrentProfileIndex((prev) => (prev + 1) % profiles.length);
+      setFade(false);
+    }, 500);
+  };
+
+  const handleDislike = async () => {
+    setFade(true);
+    setTimeout(() => {
+      setCurrentProfileIndex((prev) => (prev + 1) % profiles.length);
+      setFade(false);
+    }, 500);
+  };
+
+
   return (
     <div className="container mx-auto p-4">
       <div className="bg-gray-100 p-4 rounded-lg mb-4">
@@ -112,7 +113,7 @@ export const Matchmaker = () => {
             {profiles.map((account) => (
               <Card key={account.profile.name} className="cursor-pointer" onClick={() => handleAccountSelect(account)}>
                 <CardContent className="p-4">
-                  <img src={account.profile.image} alt={account.profile.name} className="w-32 h-32 sm:w-40 sm:h-40 md:w-52 md:h-52 rounded-full mx-auto" />
+                  <img src={account.profile.image} alt={account.profile.name} className="object-cover w-32 h-32 sm:w-40 sm:h-40 md:w-52 md:h-52 rounded-full mx-auto" />
                   <p className="mt-2 text-center font-semibold">{account.profile.name}</p>
                 </CardContent>
               </Card>
@@ -132,7 +133,7 @@ export const Matchmaker = () => {
               <Card key={profiles[currentProfileIndex].profile.name} className={`transition-opacity duration-500 ${fade ? 'opacity-0' : 'opacity-100'}`}>
                 <CardContent className="p-4 text-center">
                   <div className="flex flex-col items-center">
-                    <img src={profiles[currentProfileIndex].profile.image} alt={profiles[currentProfileIndex].profile.name} className="w-32 h-32 mx-auto rounded-full mb-4 border-4 border-indigo-500" />
+                    <img src={profiles[currentProfileIndex].profile.image} alt={profiles[currentProfileIndex].profile.name} className="object-cover w-32 h-32 mx-auto rounded-full mb-4 border-4 border-indigo-500" />
                     <p className="text-3xl font-bold text-gray-900 mb-2">{profiles[currentProfileIndex].profile.name}</p>
                     <p className="text-sm text-gray-600 mb-4">{profiles[currentProfileIndex].profile.bio}</p>
                   </div>
@@ -159,12 +160,16 @@ export const Matchmaker = () => {
           </div>
         </div>
         <div className="w-full lg:w-1/2 bg-gray-100 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold mb-7">Account Selected</h3>
+          {selectedAccount?.profile ? (
+            <h3 className="text-lg font-semibold mb-7">You are suggesting matches for {selectedAccount.profile.name}</h3>
+          ) : (
+            <h3 className="text-lg font-semibold mb-7">Select a profile to suggest</h3>
+          )}
           {selectedAccount ? (
             <Card className="bg-white shadow-lg p-6 rounded-lg">
               <CardContent className="p-4 text-center">
                 <div className="flex flex-col items-center">
-                  <img src={selectedAccount.profile.image} alt={selectedAccount.profile.name} className="w-32 h-32 mx-auto rounded-full mb-4 border-4 border-indigo-500" />
+                  <img src={selectedAccount.profile.image} alt={selectedAccount.profile.name} className="object-cover w-32 h-32 mx-auto rounded-full mb-4 border-4 border-indigo-500" />
                   <p className="text-3xl font-bold text-gray-900 mb-2">{selectedAccount.profile.name}</p>
                   <p className="text-sm text-gray-600 mb-4">{selectedAccount.profile.bio}</p>
                 </div>
