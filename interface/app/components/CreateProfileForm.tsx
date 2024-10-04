@@ -141,7 +141,9 @@ export default function ProfileFormContainer() {
             gender: profileData[7],
             favoritechain: profileData[8],
             relationship_type: profileData[9],
-            earned: profileData[10],
+            activated: profileData[10],
+            matchmaker: profileData[11],
+            earned: profileData[12],
           });
         } else {
           setProfile(null);

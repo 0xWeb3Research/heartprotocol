@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 // @ts-ignore
-import { LayoutGrid, Users, BarChart2, Settings, LogOut, Gem } from 'lucide-react';
+import { LayoutGrid, Users, BarChart2, Settings, LogOut, Gem, Handshake } from 'lucide-react';
 
 const SidebarItem = ({ icon, label, href, active }: any) => (
   <Link 
@@ -45,17 +45,18 @@ const Sidebar = ({ isOpen, activePage }: any) => {
           href="/app/matchmaker"
           active={activePage === '/app/matchmaker'} 
         />
+        <SidebarItem 
+          icon={<Handshake size={20} />} 
+          label="Connections" 
+          href="/app/connections"
+          active={activePage === '/app/connections'} 
+        />
         <div className="mt-auto">
           <SidebarItem 
             icon={<Settings size={20} />} 
             label="Settings" 
             href="/app/settings"
             active={activePage === '/app/settings'} 
-          />
-          <SidebarItem 
-            icon={<LogOut size={20} />} 
-            label="Log Out" 
-            href="/logout"
           />
         </div>
       </nav>

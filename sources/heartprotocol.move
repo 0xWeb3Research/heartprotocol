@@ -14,17 +14,44 @@ module heartprotocol::core {
     const ERROR_INSUFFICIENT_FUNDS: u64 = 5;
     const ERROR_NOT_A_MATCHMAKER: u64 = 6;
     const ERROR_PROFILE_NOT_PUBLIC: u64 = 7;
-    const ERROR_RECOMMENDATION_ALREADY_EXISTS: u64 = 8; 
+    const ERROR_RECOMMENDATION_ALREADY_EXISTS: u64 = 8;
+    const ERROR_ALREADY_LIKED: u64 = 9;
+    const ERROR_PROFILE_NOT_FOUND_IN_RECOMMENDATIONS: u64 = 10;
+    const ERROR_ALREADY_MATCHED: u64 = 11;
+    const ERROR_PROFILE_NOT_FOUND_IN_MATCHES: u64 = 12;
+    const ERROR_NOT_ADMIN: u64 = 13;
+    const ERROR_PROFILE_NOT_FOUND_IN_LIKES: u64 = 14;
+    const ERROR_CANNOT_SUGGEST_SAME_ACCOUNT: u64 = 15;
+    const ERROR_CANNOT_SUGGEST_OWN_ACCOUNT: u64 = 16;
+
 
     const ACTIVATION_COST: u64 = 100_000;
     const MATCHMAKER_COST: u64 = 100_000;
+
+    const LIKING_REWARD: u64 = 100_000;
+    const LIKING_PLATFORM_FEE: u64 = 100_000;
+
+    const RECOMMENDATION_REWARD: u64 = 100_000;
+    const RECOMMENDATION_PLATFORM_FEE: u64 = 100_000;
+
     // const MATCHMAKER_COST: u64 = 100_000_000;
     // const ACTIVATION_COST: u64 = 100_000_000;
 
-    struct Recommendation has store, copy {
+    // EXTRA FEATURES
+    // Create a function to get platform fee collected
+
+    struct Recommendation has store, copy, drop {
         recommender: address,
         profile: address,
         match: address,
+    }
+
+    struct Like has store, copy, drop {
+        profile: address,
+    }
+
+    struct Match has store, copy, drop {
+        profile: address,
     }
 
     struct Profile has store, copy {
@@ -43,6 +70,8 @@ module heartprotocol::core {
         earned: u64,
         recommendations: vector<Recommendation>,
         is_public: bool,
+        likes: vector<Like>,
+        matches: vector<Match>,
     }
 
     struct ProfileWithAddress has store, copy {
@@ -109,6 +138,8 @@ module heartprotocol::core {
             earned: 0,
             recommendations:  vector::empty<Recommendation>(),
             is_public: false,
+            likes: vector::empty<Like>(),
+            matches: vector::empty<Match>(),
         };
 
         table::add(&mut app_state.profiles, sender, profile);
@@ -182,7 +213,7 @@ module heartprotocol::core {
     }
 
     #[view]
-    public fun get_profile(user: address): (String, String, String, String, String, String, String, String, String, String, bool, bool, u64, vector<Recommendation>, bool) acquires AppState {
+    public fun get_profile(user: address): (String, String, String, String, String, String, String, String, String, String, bool, bool, u64, vector<Recommendation>, bool, vector<Like>, vector<Match>) acquires AppState {
         assert!(exists<AppState>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
 
         let app_state = borrow_global<AppState>(@heartprotocol);
@@ -206,6 +237,8 @@ module heartprotocol::core {
             profile.earned,
             profile.recommendations,
             profile.is_public,
+            profile.likes,
+            profile.matches
         )
     }
 
@@ -344,6 +377,9 @@ module heartprotocol::core {
         profile.is_public = !profile.is_public;
     }
 
+    // when users recommmend a profile 
+    // send some coins to the profile, some to platform. 
+    // get back double on liking. 
     // gotta check if recommendation already exists
     entry public fun add_recommendation(account: &signer, recommender: address, match_profile: address) acquires AppState {
         let sender = signer::address_of(account);
@@ -363,6 +399,24 @@ module heartprotocol::core {
         let recommender_profile = table::borrow_mut(&mut app_state.profiles, recommender);
         assert!(recommender_profile.is_public, ERROR_PROFILE_NOT_PUBLIC);
 
+        // Ensure the recommender is not the same as the match_profile
+        assert!(recommender != match_profile, ERROR_CANNOT_SUGGEST_SAME_ACCOUNT);
+
+        // Ensure the sender is not the same as the recommender or the match_profile
+        assert!(sender != recommender, ERROR_CANNOT_SUGGEST_OWN_ACCOUNT);
+        assert!(sender != match_profile, ERROR_CANNOT_SUGGEST_OWN_ACCOUNT);
+
+        // Check if match_profile is already in the recommender's likes list
+        let likes = &recommender_profile.likes;
+        let i = 0;
+        while (i < vector::length(likes)) {
+            let like = vector::borrow(likes, i);
+            if (like.profile == match_profile) {
+                abort(ERROR_ALREADY_LIKED)
+            };
+            i = i + 1;
+        };
+
         let recommendation = Recommendation {
             recommender: sender,
             profile: recommender,
@@ -372,9 +426,266 @@ module heartprotocol::core {
         // Add the recommendation to the recommender's list
         vector::push_back(&mut recommender_profile.recommendations, recommendation);
 
-        // Add the recommendation to the match's recommendations list
-        // let match_profile_mut = table::borrow_mut(&mut app_state.profiles, match_profile);
-        // vector::push_back(&mut match_profile_mut.recommendations, recommendation);
+        // Ensure the signer has enough balance
+        let balance = coin::balance<AptosCoin>(sender);
+        assert!(balance >= RECOMMENDATION_REWARD + RECOMMENDATION_PLATFORM_FEE, NOT_ENOUGH_BALANCE);
+
+        // Transfer RECOMMENDATION_COST to the recommender
+        coin::transfer<AptosCoin>(account, recommender, RECOMMENDATION_REWARD);
+
+        // Update the earned field in the recommender's profile
+        recommender_profile.earned = recommender_profile.earned + RECOMMENDATION_REWARD;
+
+        // Transfer RECOMMENDATION_PLATFORM_FEE to the platform address
+        coin::transfer<AptosCoin>(account, @heartprotocol, RECOMMENDATION_PLATFORM_FEE);
     }
+
+    //
+    // create a function like_profile 
+    // have to check if you are in liked profile's list if so add to match list
+    // when we like a profile do we add our profile to their recommendations list?
+    //
+    //
+
+    entry public fun skip_profile(account: &signer, profile: address) acquires AppState {
+        let sender = signer::address_of(account);
+
+        assert!(exists<AppState>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
+
+        let app_state = borrow_global_mut<AppState>(@heartprotocol);
+
+        assert!(table::contains(&app_state.profiles, sender), ERROR_PROFILE_NOT_FOUND);
+
+        let sender_profile = table::borrow_mut(&mut app_state.profiles, sender);
+
+        // Check if the profile exists in the recommended list and remove it
+        let i = 0;
+        let recommendations = &mut sender_profile.recommendations;
+        let len = vector::length(recommendations);
+        while (i < len) {
+            let recommendation = vector::borrow(recommendations, i);
+            if (recommendation.match == profile) {
+                vector::remove(recommendations, i);
+                return
+            };
+            i = i + 1;
+        };
+
+        // If the profile was not found in the recommended list, abort with an error
+        abort(ERROR_PROFILE_NOT_FOUND_IN_RECOMMENDATIONS)
+    }
+
+
+    // refactor this function so that recommender is taken from profile (found this out later, as this is a hackthon it's fine ig :) )
+    // when I like
+    // if account not in profile's like list, add to recommendations list, with recommender as recommender
+    //
+
+    entry public fun like_profile(account: &signer, profile: address, recommender: address) acquires AppState {
+        let sender = signer::address_of(account);
+
+        assert!(exists<AppState>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
+
+        let app_state = borrow_global_mut<AppState>(@heartprotocol);
+
+        assert!(table::contains(&app_state.profiles, sender), ERROR_PROFILE_NOT_FOUND);
+        assert!(table::contains(&app_state.profiles, profile), ERROR_PROFILE_NOT_FOUND);
+        assert!(table::contains(&app_state.profiles, recommender), ERROR_PROFILE_NOT_FOUND);
+
+        // Check if profiles are activated
+        assert!(table::borrow(&app_state.profiles, sender).activated, ERROR_PROFILE_NOT_ACTIVATED);
+        assert!(table::borrow(&app_state.profiles, profile).activated, ERROR_PROFILE_NOT_ACTIVATED);
+        assert!(table::borrow(&app_state.profiles, recommender).activated, ERROR_PROFILE_NOT_ACTIVATED);
+
+
+        // Check if profile is already in the account's match list
+        {
+            let sender_profile = table::borrow(&app_state.profiles, sender);
+            let i = 0;
+            while (i < vector::length(&sender_profile.matches)) {
+                let match_profile = vector::borrow(&sender_profile.matches, i);
+                if (match_profile.profile == profile) {
+                    abort ERROR_ALREADY_MATCHED
+                };
+                i = i + 1;
+            };
+        };
+
+
+        // Check if account is in profile's like list and update accordingly
+        let is_match = {
+            let profile_ref = table::borrow_mut(&mut app_state.profiles, profile);
+            let is_match = false;
+            let j = 0;
+            while (j < vector::length(&profile_ref.likes)) {
+                let like = vector::borrow(&profile_ref.likes, j);
+                if (like.profile == sender) {
+                    is_match = true;
+                    // Remove account from profile's like list
+                    vector::remove(&mut profile_ref.likes, j);
+
+                    // Add account to profile's match list
+                    let new_match = Match { profile: sender };
+                    vector::push_back(&mut profile_ref.matches, new_match);
+                    break
+                };
+                j = j + 1;
+            };
+
+            is_match
+        };
+
+        // Update sender's profile
+        {
+            let sender_profile_ref = table::borrow_mut(&mut app_state.profiles, sender);
+            if (is_match) {
+                // Add profile to account's match list
+                let new_match = Match { profile };
+                vector::push_back(&mut sender_profile_ref.matches, new_match);
+
+                // Remove profile from account's like list
+                let k = 0;
+                while (k < vector::length(&sender_profile_ref.likes)) {
+                    let like = vector::borrow(&sender_profile_ref.likes, k);
+                    if (like.profile == profile) {
+                        vector::remove(&mut sender_profile_ref.likes, k);
+                        break
+                    };
+                    k = k + 1;
+                };
+            } else {
+                // Add like to account's profile
+                let like = Like { profile };
+                vector::push_back(&mut sender_profile_ref.likes, like);
+            };
+
+            // Remove from recommendations list
+            let l = 0;
+            while (l < vector::length(&sender_profile_ref.recommendations)) {
+                let recommendation = vector::borrow(&sender_profile_ref.recommendations, l);
+                if (recommendation.profile == profile) {
+                    vector::remove(&mut sender_profile_ref.recommendations, l);
+                    break
+                };
+                l = l + 1;
+            };
+        };
+
+        // Update profile's recommendation list
+        // recommender: address,
+        // profile: address,
+        // match: address,
+        {
+            let profile_ref = table::borrow_mut(&mut app_state.profiles, profile);
+            if (!is_match) {
+                // Add sender to profile's recommendation list
+                let recommendation = Recommendation { profile: profile, recommender: recommender, match: sender };
+                vector::push_back(&mut profile_ref.recommendations, recommendation);
+            };
+        };
+
+        // Send LIKING_REWARD to the recommender
+        let balance = coin::balance<AptosCoin>(sender);
+        assert!(balance >= LIKING_REWARD + LIKING_PLATFORM_FEE, NOT_ENOUGH_BALANCE);
+
+        coin::transfer<AptosCoin>(account, recommender, LIKING_REWARD);
+
+        // Send LIKING_PLATFORM_FEE to the contract address
+        coin::transfer<AptosCoin>(account, @heartprotocol, LIKING_PLATFORM_FEE);
+
+        // Update recommender's profile
+        {
+            let recommender_ref = table::borrow_mut(&mut app_state.profiles, recommender);
+            // Add LIKING_REWARD to the earned field in the recommender's profile
+            recommender_ref.earned = recommender_ref.earned + LIKING_REWARD;
+        };
+
+        skip_profile(account, profile);
+    }
+
+    public fun admin_remove_from_like_list(account: &signer, profile: address, target: address) acquires AppState {
+        let admin_address = @heartprotocol;
+        let caller_address = signer::address_of(account);
+
+        // Ensure the caller is the contract address
+        assert!(caller_address == admin_address, ERROR_NOT_ADMIN);
+
+        let app_state = borrow_global_mut<AppState>(@heartprotocol);
+
+        assert!(table::contains(&app_state.profiles, profile), ERROR_PROFILE_NOT_FOUND);
+
+        let profile_ref = table::borrow_mut(&mut app_state.profiles, profile);
+
+        // Remove target from profile's like list
+        let i = 0;
+        while (i < vector::length(&profile_ref.likes)) {
+            let like = vector::borrow(&profile_ref.likes, i);
+            if (like.profile == target) {
+                vector::remove(&mut profile_ref.likes, i);
+                return
+            };
+            i = i + 1;  
+        };
+
+        // If the target was not found in the like list, abort with an error
+        abort ERROR_PROFILE_NOT_FOUND_IN_LIKES
+    }
+
+    entry fun admin_remove_from_recommended_list(account: &signer, profile: address, target: address) acquires AppState {
+        let admin_address = @heartprotocol;
+        let caller_address = signer::address_of(account);
+
+        // Ensure the caller is the contract address
+        assert!(caller_address == admin_address, ERROR_NOT_ADMIN);
+
+        let app_state = borrow_global_mut<AppState>(@heartprotocol);
+
+        assert!(table::contains(&app_state.profiles, profile), ERROR_PROFILE_NOT_FOUND);
+
+        let profile_ref = table::borrow_mut(&mut app_state.profiles, profile);
+
+        // Remove target from profile's recommended list
+        let i = 0;
+        while (i < vector::length(&profile_ref.recommendations)) {
+            let recommendation = vector::borrow(&profile_ref.recommendations, i);
+            if (recommendation.profile == target) {
+                vector::remove(&mut profile_ref.recommendations, i);
+                return
+            };
+            i = i + 1;  
+        };
+
+        // If the target was not found in the recommended list, abort with an error
+        abort ERROR_PROFILE_NOT_FOUND_IN_RECOMMENDATIONS
+    }
+
+    entry fun admin_remove_from_match_list(account: &signer, profile: address, target: address) acquires AppState {
+        let admin_address = @heartprotocol;
+        let caller_address = signer::address_of(account);
+
+        // Ensure the caller is the contract address
+        assert!(caller_address == admin_address, ERROR_NOT_ADMIN);
+
+        let app_state = borrow_global_mut<AppState>(@heartprotocol);
+
+        assert!(table::contains(&app_state.profiles, profile), ERROR_PROFILE_NOT_FOUND);
+
+        let profile_ref = table::borrow_mut(&mut app_state.profiles, profile);
+
+        // Remove target from profile's match list
+        let i = 0;
+        while (i < vector::length(&profile_ref.matches)) {
+            let match = vector::borrow(&profile_ref.matches, i);
+            if (match.profile == target) {
+                vector::remove(&mut profile_ref.matches, i);
+                return
+            };
+            i = i + 1;  
+        };
+
+        // If the target was not found in the match list, abort with an error
+        abort ERROR_PROFILE_NOT_FOUND_IN_MATCHES
+    }
+
 
 }
