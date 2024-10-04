@@ -18,6 +18,9 @@ module heartprotocol::core {
     const ERROR_ALREADY_LIKED: u64 = 9;
     const ERROR_PROFILE_NOT_FOUND_IN_RECOMMENDATIONS: u64 = 10;
     const ERROR_ALREADY_MATCHED: u64 = 11;
+    const ERROR_PROFILE_NOT_FOUND_IN_MATCHES: u64 = 12;
+    const ERROR_NOT_ADMIN: u64 = 13;
+    const ERROR_PROFILE_NOT_FOUND_IN_LIKES: u64 = 14;
 
 
     const ACTIVATION_COST: u64 = 100_000;
@@ -583,4 +586,90 @@ module heartprotocol::core {
         };
 
     }
+
+  public fun admin_remove_from_like_list(account: &signer, profile: address, target: address) acquires AppState {
+    let admin_address = @heartprotocol;
+    let caller_address = signer::address_of(account);
+
+    // Ensure the caller is the contract address
+    assert!(caller_address == admin_address, ERROR_NOT_ADMIN);
+
+    let app_state = borrow_global_mut<AppState>(@heartprotocol);
+
+    assert!(table::contains(&app_state.profiles, profile), ERROR_PROFILE_NOT_FOUND);
+
+    let profile_ref = table::borrow_mut(&mut app_state.profiles, profile);
+
+    // Remove target from profile's like list
+    let i = 0;
+    while (i < vector::length(&profile_ref.likes)) {
+        let like = vector::borrow(&profile_ref.likes, i);
+        if (like.profile == target) {
+            vector::remove(&mut profile_ref.likes, i);
+            return
+        };
+        i = i + 1;  // Added semicolon here
+    };
+
+    // If the target was not found in the like list, abort with an error
+    abort ERROR_PROFILE_NOT_FOUND_IN_LIKES
+}
+
+entry fun admin_remove_from_recommended_list(account: &signer, profile: address, target: address) acquires AppState {
+    let admin_address = @heartprotocol;
+    let caller_address = signer::address_of(account);
+
+    // Ensure the caller is the contract address
+    assert!(caller_address == admin_address, ERROR_NOT_ADMIN);
+
+    let app_state = borrow_global_mut<AppState>(@heartprotocol);
+
+    assert!(table::contains(&app_state.profiles, profile), ERROR_PROFILE_NOT_FOUND);
+
+    let profile_ref = table::borrow_mut(&mut app_state.profiles, profile);
+
+    // Remove target from profile's recommended list
+    let i = 0;
+    while (i < vector::length(&profile_ref.recommendations)) {
+        let recommendation = vector::borrow(&profile_ref.recommendations, i);
+        if (recommendation.profile == target) {
+            vector::remove(&mut profile_ref.recommendations, i);
+            return
+        };
+        i = i + 1;  // Added semicolon here
+    };
+
+    // If the target was not found in the recommended list, abort with an error
+    abort ERROR_PROFILE_NOT_FOUND_IN_RECOMMENDATIONS
+}
+
+entry fun admin_remove_from_match_list(account: &signer, profile: address, target: address) acquires AppState {
+    let admin_address = @heartprotocol;
+    let caller_address = signer::address_of(account);
+
+    // Ensure the caller is the contract address
+    assert!(caller_address == admin_address, ERROR_NOT_ADMIN);
+
+    let app_state = borrow_global_mut<AppState>(@heartprotocol);
+
+    assert!(table::contains(&app_state.profiles, profile), ERROR_PROFILE_NOT_FOUND);
+
+    let profile_ref = table::borrow_mut(&mut app_state.profiles, profile);
+
+    // Remove target from profile's match list
+    let i = 0;
+    while (i < vector::length(&profile_ref.matches)) {
+        let match = vector::borrow(&profile_ref.matches, i);
+        if (match.profile == target) {
+            vector::remove(&mut profile_ref.matches, i);
+            return
+        };
+        i = i + 1;  // Added semicolon here
+    };
+
+    // If the target was not found in the match list, abort with an error
+    abort ERROR_PROFILE_NOT_FOUND_IN_MATCHES
+}
+
+
 }
