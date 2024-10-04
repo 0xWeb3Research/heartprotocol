@@ -2,7 +2,6 @@
 
 import Connection from '@/app/components/Connection';
 import Header from '@/app/components/Header';
-import Matchmaker from '@/app/components/MatchMaker';
 import Sidebar from '@/app/components/Sidebar';
 import React, { useState } from 'react';
 
