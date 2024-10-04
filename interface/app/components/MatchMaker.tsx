@@ -16,7 +16,6 @@ const accountsPerPage = 4;
 export const Matchmaker = () => {
   const { account, signAndSubmitTransaction } = useWallet();
   const [selectedAccount, setSelectedAccount] = useState(null);
-  const [recommendations, setRecommendations] = useState(null);
   const [profiles, setProfiles] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
@@ -72,7 +71,12 @@ export const Matchmaker = () => {
 
       const publicProfiles = result[0].filter(profile => profile.profile.is_public);
       const activatedProfile = publicProfiles.filter(profile => profile.profile.activated);
-      setProfiles((prevProfiles) => [...prevProfiles, ...activatedProfile]); // Append new profiles to existing ones
+      
+      setProfiles((prevProfiles) => {
+        const existingProfileIds = new Set(prevProfiles.map(profile => profile.profile.id));
+        const newProfiles = activatedProfile.filter(profile => !existingProfileIds.has(profile.profile.id));
+        return [...prevProfiles, ...newProfiles];
+      });
     } catch (error) {
       console.error("Error fetching profile:", error);
     }
