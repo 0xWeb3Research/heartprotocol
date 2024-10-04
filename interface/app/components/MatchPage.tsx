@@ -15,6 +15,8 @@ const MatchPageContainer = () => {
     const [matchProfile, setMatchProfile] = useState(null);
     const [recommenderProfile, setRecommenderProfile] = useState(null);
     const [profiles, setProfiles] = useState([]);
+    const [likedProfiles, setLikedProfiles] = useState([]);
+    const [matchedProfiles, setMatchedProfiles] = useState([]);
     const [profileIndex, setProfileIndex] = useState(0);
 
     const getProfile = async (address) => {
@@ -27,7 +29,6 @@ const MatchPageContainer = () => {
                 },
             });
 
-            console.log("getProfile result", result);
             return result;
         } catch (error) {
             console.error("Error fetching profile:", error);
@@ -38,6 +39,7 @@ const MatchPageContainer = () => {
     const getAllProfiles = async () => {
         try {
             const profileData = await getProfile(account.address);
+            console.log("profileData", profileData);
             setProfiles(profileData[13] || []);
 
             if (profileData && profileData.length > 0) {
@@ -48,6 +50,26 @@ const MatchPageContainer = () => {
             console.error("Error fetching accounts:", error);
         }
     };
+
+    const getAllProfilesInLikedList = async () => {
+        try {
+            const profileData = await getProfile(account.address);
+            console.log("profileData", profileData);
+            setLikedProfiles(profileData[15] || []);
+        } catch (error) {
+            console.error("Error fetching accounts:", error);
+        }
+    }
+
+    const getAllProfilesInMatchedList = async () => {
+        try {
+            const profileData = await getProfile(account.address);
+            console.log("profileData", profileData);
+            setMatchedProfiles(profileData[16] || []);
+        } catch (error) {
+            console.error("Error fetching accounts:", error);
+        }
+    }
 
     const loadProfiles = async (profilesArray, index) => {
         if (index < profilesArray.length) {
@@ -75,6 +97,8 @@ const MatchPageContainer = () => {
     useEffect(() => {
         if (account) {
             getAllProfiles();
+            getAllProfilesInLikedList();
+            getAllProfilesInMatchedList();
         }
     }, [account]);
 
@@ -122,13 +146,12 @@ const MatchPageContainer = () => {
                                 )}
                             </div>
                         </div>
-                        {/* Recommended By Card */}
                         <div className="w-full lg:w-1/3 bg-gray-100 p-4 rounded-lg">
                             <div className="mb-4 bg-gray-200 p-2 rounded">
-                                {recommenderProfile ? `You have ${recommenderProfile ? 1 : 0} profile(s) in recommended` : "You have no recommended profiles"}
+                                {recommenderProfile ? `You have ${profiles.length  ? profiles.length : 0} profile(s) in recommended` : "You have no recommended profiles"}
                             </div>
                             <div className="bg-gray-200 p-2 rounded">
-                                you have {profiles.length} profile(s) in liked list
+                                you have {likedProfiles.length} profile(s) in liked list
                             </div>
                             <div className="w-full bg-gray-100 p-4 rounded-lg">
                                 <h2 className="text-xl font-bold mb-4">Recommended By</h2>
