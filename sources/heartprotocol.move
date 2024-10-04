@@ -687,5 +687,9 @@ module heartprotocol::core {
         abort ERROR_PROFILE_NOT_FOUND_IN_MATCHES
     }
 
+    #[view]
+    public fun get_contract_balance(): u64 {
+        coin::balance<AptosCoin>(@heartprotocol)
+    }
 
 }
