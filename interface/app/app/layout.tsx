@@ -8,9 +8,9 @@ const AccountContext = createContext(null);
 
 export const useAccount = () => useContext(AccountContext);
 
-const AccountProvider = ({ children }) => {
+const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { account, connected, wallet } = useWallet();
-  const [accountData, setAccountData] = useState(null);
+  const [accountData, setAccountData] = useState<any>(null);
 
   useEffect(() => {
     if (connected && account) {
@@ -18,7 +18,7 @@ const AccountProvider = ({ children }) => {
       setAccountData({
         address: account.address,
         publicKey: account.publicKey,
-        connected: account.connected,
+        connected: true
       });
     } else {
       setAccountData(null);

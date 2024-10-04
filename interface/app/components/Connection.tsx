@@ -18,7 +18,7 @@ function Connection() {
         }
     }, [account]);
 
-    const getProfile = async (userAddress) => {
+    const getProfile = async (userAddress: any) => {
         try {
             const result = await client.view({
                 payload: {
@@ -31,10 +31,10 @@ function Connection() {
             console.log("getProfile result", result);
 
             // Assuming result[16] contains the array of profiles
-            const profileAddresses = result[16].map((item) => item.profile);
+            const profileAddresses = Array.isArray(result[16]) ? result[16].map((item) => item.profile) : [];
 
             // Fetch each profile's data
-            const profilesData = await Promise.all(profileAddresses.map(async (address) => {
+            const profilesData: any = await Promise.all(profileAddresses.map(async (address) => {
                 return await fetchProfileData(address);
             }));
 
@@ -45,7 +45,7 @@ function Connection() {
         }
     };
 
-    const fetchProfileData = async (address) => {
+    const fetchProfileData = async (address: any) => {
         try {
             const result = await client.view({
                 payload: {

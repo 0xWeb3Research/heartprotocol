@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
-import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+import { Aptos, AptosConfig, EntryFunctionArgumentTypes, Network, SimpleEntryFunctionArgumentTypes } from "@aptos-labs/ts-sdk";
 import ProfileView from './ProfileView';
 import ProfileForm from './ProfileForm';
 import Loading from './Loading';
@@ -17,7 +17,7 @@ const pinataSecretApiKey = process.env.NEXT_PUBLIC_PINATA_SECRET_API_KEY;
 
 export default function ProfileFormContainer() {
   const { account, signAndSubmitTransaction } = useWallet();
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isActivated, setIsActivated] = useState(false);
   const [matchmakerActivated, setMatchmakerActivated] = useState(false);
@@ -75,7 +75,10 @@ export default function ProfileFormContainer() {
 
   const checkAppStateInitialized = async () => {
     try {
-      const resourceType = `${moduleAddress}::${moduleName}::AppState`;
+      const resourceType: `${string}::${string}::${string}` = `${moduleAddress}::${moduleName}::AppState`;
+      if (!moduleAddress) {
+        throw new Error("Module address is not defined");
+      }
       await client.getAccountResource({
         accountAddress: moduleAddress,
         resourceType: resourceType,
@@ -89,7 +92,7 @@ export default function ProfileFormContainer() {
     }
   };
 
-  const getProfile = async (userAddress) => {
+  const getProfile = async (userAddress: string | number | bigint | boolean | EntryFunctionArgumentTypes | Uint8Array<ArrayBufferLike> | ArrayBuffer | (EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes)[] | null | undefined) => {
     try {
       const result = await client.view({
         payload: {
@@ -159,16 +162,16 @@ export default function ProfileFormContainer() {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: { target: { name: any; value: any; }; }) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleImageChange = (file) => {
+  const handleImageChange = (file: any) => {
     setFormData(prev => ({ ...prev, image: file }));
   };
 
-  const uploadImageToPinata = async (file) => {
+  const uploadImageToPinata = async (file: string | Blob) => {
     const url = `https://api.pinata.cloud/pinning/pinFileToIPFS`;
     const formData = new FormData();
     formData.append('file', file);
@@ -185,9 +188,9 @@ export default function ProfileFormContainer() {
 
     try {
       const response = await axios.post(url, formData, {
-        maxContentLength: 'Infinity',
+        maxContentLength: Infinity,
         headers: {
-          'Content-Type': `multipart/form-data; boundary=${formData._boundary}`,
+          'Content-Type': 'multipart/form-data',
           'pinata_api_key': pinataApiKey,
           'pinata_secret_api_key': pinataSecretApiKey,
         },
@@ -199,16 +202,16 @@ export default function ProfileFormContainer() {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     setLoading(true);
 
-    let imageUrl = '';
+    let imageUrl: any = '';
     if (formData.image) {
       imageUrl = await uploadImageToPinata(formData.image);
     }
 
-    const payload = {
+    const payload: any = {
       function: `${moduleAddress}::${moduleName}::create_profile`,
       functionArguments: [
         formData.name,
@@ -250,16 +253,16 @@ export default function ProfileFormContainer() {
     setIsEditing(true);
   };
 
-  const handleUpdateSubmit = async (e) => {
+  const handleUpdateSubmit = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     setLoading(true);
 
-    let imageUrl = formData.image;
+    let imageUrl: any = formData.image;
     if (formData.image && typeof formData.image !== 'string') {
       imageUrl = await uploadImageToPinata(formData.image);
     }
 
-    const payload = {
+    const payload: any = {
       function: `${moduleAddress}::${moduleName}::update_profile`,
       functionArguments: [
         formData.name,
@@ -309,7 +312,7 @@ export default function ProfileFormContainer() {
   }
 
   const handleActivateProfile = async () => {
-    const payload = {
+    const payload: any = {
       function: `${moduleAddress}::${moduleName}::activate_profile`,
       typeArguments: [],
       functionArguments: [],
@@ -327,7 +330,7 @@ export default function ProfileFormContainer() {
   };
 
   const handleMatchmakerActivation = async () => {
-    const payload = {
+    const payload: any = {
       function: `${moduleAddress}::${moduleName}::become_matchmaker`,
       typeArguments: [],
       functionArguments: [],
@@ -345,7 +348,7 @@ export default function ProfileFormContainer() {
   };
 
 const handlePublicActivate = async () => {
-    const payload = {
+    const payload: any = {
       function: `${moduleAddress}::${moduleName}::toggle_public_status`,
       typeArguments: [],
       functionArguments: [],
