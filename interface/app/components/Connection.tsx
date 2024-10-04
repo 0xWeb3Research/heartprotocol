@@ -63,27 +63,25 @@ function Connection() {
     };
 
     return (
-        <div className="p-6 bg-gray-100 min-h-screen">
+        <div className="w-full max-w-6xl mx-auto">
             <h1 className="text-3xl font-bold mb-6">Connections</h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6">
                 {profiles.map((profile, index) => (
                     <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
-                        <div className="p-4 flex items-start space-x-4">
-                            <div className="w-24 h-24 bg-gray-300 rounded-md flex-shrink-0">
+                        <div className="p-6 flex items-start space-x-4">
+                            <div className="w-52 h-52 bg-gray-300 rounded-md flex-shrink-0">
                                 <img src={profile[4]} alt="Profile" className="w-full h-full object-cover" />
                             </div>
                             <div className="flex-grow">
                                 <h2 className="text-xl font-semibold">{profile[0]}</h2>
                                 <p className="text-sm text-gray-600">{profile[3]}</p>
                                 <p className="text-sm text-gray-600">Location: {profile[5]}</p>
-                            </div>
-                        </div>
-                        <div className="px-4 pb-4">
-                            <div className="flex flex-wrap gap-2">
-                                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">Height: {profile[6]}</span>
-                                <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Gender: {profile[7]}</span>
-                                <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">Favorite Chain: {profile[8]}</span>
-                                <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Relationship: {profile[9]}</span>
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">Height: {profile[6]}</span>
+                                    <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Gender: {profile[7]}</span>
+                                    <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">Favorite Chain: {profile[8]}</span>
+                                    <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Relationship: {profile[9]}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
