@@ -177,7 +177,7 @@ export default function ProfileFormContainer() {
     formData.append('file', file);
 
     const metadata = JSON.stringify({
-      name: file.name,
+      name: (file instanceof Blob && 'name' in file) ? file.name : 'unknown',
     });
     formData.append('pinataMetadata', metadata);
 
