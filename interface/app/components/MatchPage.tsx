@@ -11,13 +11,15 @@ const moduleAddress = process.env.NEXT_PUBLIC_MODULE_ADDRESS;
 const moduleName = "core";
 
 const MatchPageContainer = () => {
-    const { account } = useWallet();
+    const { account, signAndSubmitTransaction } = useWallet();
     const [matchProfile, setMatchProfile] = useState(null);
     const [recommenderProfile, setRecommenderProfile] = useState(null);
     const [profiles, setProfiles] = useState([]);
     const [likedProfiles, setLikedProfiles] = useState([]);
     const [matchedProfiles, setMatchedProfiles] = useState([]);
     const [profileIndex, setProfileIndex] = useState(0);
+    const [matchProfileAddress, setMatchProfileAddress] = useState(null);
+    const [recommenderProfileAddress, setRecommenderProfileAddress] = useState(null);
 
     const getProfile = async (address) => {
         try {
@@ -75,32 +77,62 @@ const MatchPageContainer = () => {
         if (index < profilesArray.length) {
             const profile = profilesArray[index];
             const matchProfileData = await getProfile(profile.match);
+            setMatchProfileAddress(profile.match);
             const recommenderProfileData = await getProfile(profile.recommender);
-
             setMatchProfile(matchProfileData);
             setRecommenderProfile(recommenderProfileData);
+            setRecommenderProfileAddress(profile.recommender);
+            setRecommenderProfileAddress(profile.recommender);
         } else {
             setMatchProfile(null);
             setRecommenderProfile(null);
         }
     };
 
-    const handleLike = () => {
-        const newProfiles = [...profiles];
-        newProfiles.splice(profileIndex, 1);
-        setProfiles(newProfiles);
-        const newIndex = profileIndex < newProfiles.length ? profileIndex : 0;
-        setProfileIndex(newIndex);
-        loadProfiles(newProfiles, newIndex);
+    const handleLike = async () => {
+        try {
+            const payload = {
+                function: `${moduleAddress}::${moduleName}::like_profile`,
+                functionArguments: [
+                    matchProfileAddress,
+                    recommenderProfileAddress
+                ],
+            };
+            const response = await signAndSubmitTransaction({ data: payload });
+            console.log("response", response);
+        } catch (error) {
+            console.error("Error creating profile:", error);
+        } finally {
+            const newProfiles = [...profiles];
+            newProfiles.splice(profileIndex, 1);
+            setProfiles(newProfiles);
+            const newIndex = profileIndex < newProfiles.length ? profileIndex : 0;
+            setProfileIndex(newIndex);
+            loadProfiles(newProfiles, newIndex);
+        }
     };
 
-    const handleDislike = () => {
-        const newProfiles = [...profiles];
-        newProfiles.splice(profileIndex, 1);
-        setProfiles(newProfiles);
-        const newIndex = profileIndex < newProfiles.length ? profileIndex : 0;
-        setProfileIndex(newIndex);
-        loadProfiles(newProfiles, newIndex);
+    const handleDislike = async () => {
+        try {
+            const payload = {
+                function: `${moduleAddress}::${moduleName}::skip_profile`,
+                functionArguments: [
+                    matchProfileAddress
+                ],
+            };
+            const response = await signAndSubmitTransaction({ data: payload });
+            console.log("response", response);
+        } catch (error) {
+            console.error("Error creating profile:", error);
+        } finally {
+
+            const newProfiles = [...profiles];
+            newProfiles.splice(profileIndex, 1);
+            setProfiles(newProfiles);
+            const newIndex = profileIndex < newProfiles.length ? profileIndex : 0;
+            setProfileIndex(newIndex);
+            loadProfiles(newProfiles, newIndex);
+        }
     };
 
     useEffect(() => {
@@ -160,7 +192,7 @@ const MatchPageContainer = () => {
                                     {recommenderProfile ? `You have ${profiles.length} profile(s) in recommended` : "You have no recommended profiles"}
                                 </div>
                                 <div className="bg-gray-200 p-2 rounded">
-                                    you have {likedProfiles.length} profile(s) in liked
+                                    you have liked {likedProfiles.length} profile(s)
                                 </div>
                                 <div className="bg-gray-200 p-2 rounded mt-4">
                                     you have {matchedProfiles.length} profile(s) Matched
@@ -171,7 +203,7 @@ const MatchPageContainer = () => {
                                         <Card className="transition-opacity duration-500">
                                             <CardContent className="p-4 text-center">
                                                 <div className="flex flex-col items-center">
-                                                    <img src={recommenderProfile[4]} alt={recommenderProfile[0]} className="object-cover w-32 h-32 mx-auto rounded-full mb-4 border-4 border-indigo-500" />
+                                                    <img src={recommenderProfile[4]} alt={recommenderProfile[0]} className="object-cover w-20 h-20 mx-auto rounded-full mb-4 border-4 border-indigo-500" />
                                                     <p className="text-3xl font-bold text-gray-900 mb-2">{recommenderProfile[0]}</p>
                                                 </div>
                                             </CardContent>
@@ -194,7 +226,7 @@ const MatchPageContainer = () => {
                                 {recommenderProfile ? `You have ${profiles.length} profile(s) in recommended` : "You have no recommended profiles"}
                             </div>
                             <div className="bg-gray-200 p-2 rounded">
-                                you have {likedProfiles.length} profile(s) in liked
+                                you have liked {likedProfiles.length} profile(s)
                             </div>
                             <div className="bg-gray-200 p-2 rounded mt-4">
                                 you have {matchedProfiles.length} profile(s) Matched

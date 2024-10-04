@@ -58,11 +58,6 @@ const Sidebar = ({ isOpen, activePage }: any) => {
             href="/app/settings"
             active={activePage === '/app/settings'} 
           />
-          <SidebarItem 
-            icon={<LogOut size={20} />} 
-            label="Log Out" 
-            href="/logout"
-          />
         </div>
       </nav>
     </div>

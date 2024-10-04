@@ -464,7 +464,7 @@ module heartprotocol::core {
         let len = vector::length(recommendations);
         while (i < len) {
             let recommendation = vector::borrow(recommendations, i);
-            if (recommendation.profile == profile) {
+            if (recommendation.match == profile) {
                 vector::remove(recommendations, i);
                 return
             };
@@ -477,6 +477,10 @@ module heartprotocol::core {
 
 
     // refactor this function so that recommender is taken from profile (found this out later, as this is a hackthon it's fine ig :) )
+    // when I like
+    // if account not in profile's like list, add to recommendations list, with recommender as recommender
+    //
+
     entry public fun like_profile(account: &signer, profile: address, recommender: address) acquires AppState {
         let sender = signer::address_of(account);
 
@@ -493,6 +497,7 @@ module heartprotocol::core {
         assert!(table::borrow(&app_state.profiles, profile).activated, ERROR_PROFILE_NOT_ACTIVATED);
         assert!(table::borrow(&app_state.profiles, recommender).activated, ERROR_PROFILE_NOT_ACTIVATED);
 
+
         // Check if profile is already in the account's match list
         {
             let sender_profile = table::borrow(&app_state.profiles, sender);
@@ -505,6 +510,7 @@ module heartprotocol::core {
                 i = i + 1;
             };
         };
+
 
         // Check if account is in profile's like list and update accordingly
         let is_match = {
@@ -594,6 +600,7 @@ module heartprotocol::core {
             recommender_ref.earned = recommender_ref.earned + LIKING_REWARD;
         };
 
+        skip_profile(account, profile);
     }
 
     public fun admin_remove_from_like_list(account: &signer, profile: address, target: address) acquires AppState {
