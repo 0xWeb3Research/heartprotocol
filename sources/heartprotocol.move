@@ -21,6 +21,8 @@ module heartprotocol::core {
     const ERROR_PROFILE_NOT_FOUND_IN_MATCHES: u64 = 12;
     const ERROR_NOT_ADMIN: u64 = 13;
     const ERROR_PROFILE_NOT_FOUND_IN_LIKES: u64 = 14;
+    const ERROR_CANNOT_SUGGEST_SAME_ACCOUNT: u64 = 15;
+    const ERROR_CANNOT_SUGGEST_OWN_ACCOUNT: u64 = 16;
 
 
     const ACTIVATION_COST: u64 = 100_000;
@@ -396,6 +398,13 @@ module heartprotocol::core {
 
         let recommender_profile = table::borrow_mut(&mut app_state.profiles, recommender);
         assert!(recommender_profile.is_public, ERROR_PROFILE_NOT_PUBLIC);
+
+        // Ensure the recommender is not the same as the match_profile
+        assert!(recommender != match_profile, ERROR_CANNOT_SUGGEST_SAME_ACCOUNT);
+
+        // Ensure the sender is not the same as the recommender or the match_profile
+        assert!(sender != recommender, ERROR_CANNOT_SUGGEST_OWN_ACCOUNT);
+        assert!(sender != match_profile, ERROR_CANNOT_SUGGEST_OWN_ACCOUNT);
 
         // Check if match_profile is already in the recommender's likes list
         let likes = &recommender_profile.likes;
