@@ -1,5 +1,6 @@
 'use client';
 
+import Connection from '@/app/components/Connection';
 import Header from '@/app/components/Header';
 import Matchmaker from '@/app/components/MatchMaker';
 import Sidebar from '@/app/components/Sidebar';
@@ -17,6 +18,7 @@ const Layout = ({ children, title }: any) => {
         <Header toggleSidebar={toggleSidebar} title={"Connections"} />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
           {children}
+          <Connection />
         </main>
       </div>
     </div>
