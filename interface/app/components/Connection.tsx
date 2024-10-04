@@ -64,7 +64,7 @@ function Connection() {
 
     return (
         <div className="w-full max-w-6xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6">Connections</h1>
+            <h1 className="text-xl font-bold mb-6">Your matched profiles</h1>
             <div className="grid grid-cols-1 gap-6">
                 {profiles.map((profile, index) => (
                     <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
