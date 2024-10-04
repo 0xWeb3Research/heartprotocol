@@ -17,37 +17,38 @@ function FeesCollected() {
         if (account) {
             getFeesCollected();
         }
-      }, [account]);
+    }, [account]);
 
 
-      const getFeesCollected = async () => {
+    const getFeesCollected = async () => {
         try {
             const result = await client.view({
-              payload: {
-                function: `${moduleAddress}::${moduleName}::get_contract_balance`,
-                typeArguments: [],
-                functionArguments: [],
-              },
+                payload: {
+                    function: `${moduleAddress}::${moduleName}::get_contract_balance`,
+                    typeArguments: [],
+                    functionArguments: [],
+                },
             });
-      
-            const fee = parseInt(result[0], 10) / 10**8;
+
+            const fee = parseInt(result[0], 10) / 10 ** 8;
             setFeesCollected(fee);
             return result;
-          } catch (error) {
+        } catch (error) {
             console.error("Error fetching profile:", error);
             return null;
-          }
-      }
+        }
+    }
 
-  return (
-    <div className='container mx-auto p-4'>
-    <div className="bg-gray-100 p-4 rounded-lg">
-        <div className="bg-gray-200 p-2 rounded">
-            Platform has collected {feesCollected} APT in fees.
+    return (
+        <div className='container mx-auto p-4'>
+            <h1 className="text-xl font-bold mb-6">Platform Settings</h1>
+            <div className="bg-gray-100 p-4 rounded-lg">
+                <div className="bg-gray-200 p-2 rounded">
+                    Platform has collected {feesCollected} APT in fees.
+                </div>
+            </div>
         </div>
-    </div>
-</div>
-  )
+    )
 }
 
 export default FeesCollected

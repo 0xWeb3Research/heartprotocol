@@ -233,6 +233,7 @@ const MatchPageContainer = () => {
             ) :
                 (
                     <div className='container mx-auto p-4'>
+                          <h1 className="text-xl font-bold mb-6">Your profile stats</h1>
                         <div className="bg-gray-100 p-4 rounded-lg">
                             <div className="mb-4 bg-gray-200 p-2 rounded">
                                 {recommenderProfile ? `You have ${profiles.length} profile(s) in recommended` : "You have no recommended profiles"}

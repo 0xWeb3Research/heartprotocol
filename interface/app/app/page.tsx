@@ -28,6 +28,7 @@ const Layout = ({ children, title }: any) => {
         <Header toggleSidebar={toggleSidebar} title={"Dashboard"} />
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
           {children}
+          
           <CreateProfileForm />
         </main>
         <div className="relative mt-4 p-6">
