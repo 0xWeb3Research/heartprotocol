@@ -79,19 +79,28 @@ const MatchPageContainer = () => {
 
             setMatchProfile(matchProfileData);
             setRecommenderProfile(recommenderProfileData);
+        } else {
+            setMatchProfile(null);
+            setRecommenderProfile(null);
         }
     };
 
     const handleLike = () => {
-        const newIndex = profileIndex < profiles.length - 1 ? profileIndex + 1 : 0;
+        const newProfiles = [...profiles];
+        newProfiles.splice(profileIndex, 1);
+        setProfiles(newProfiles);
+        const newIndex = profileIndex < newProfiles.length ? profileIndex : 0;
         setProfileIndex(newIndex);
-        loadProfiles(profiles, newIndex);
+        loadProfiles(newProfiles, newIndex);
     };
 
     const handleDislike = () => {
-        const newIndex = profileIndex < profiles.length - 1 ? profileIndex + 1 : 0;
+        const newProfiles = [...profiles];
+        newProfiles.splice(profileIndex, 1);
+        setProfiles(newProfiles);
+        const newIndex = profileIndex < newProfiles.length ? profileIndex : 0;
         setProfileIndex(newIndex);
-        loadProfiles(profiles, newIndex);
+        loadProfiles(newProfiles, newIndex);
     };
 
     useEffect(() => {
@@ -112,17 +121,17 @@ const MatchPageContainer = () => {
                             <div className="space-y-4">
                                 {matchProfile ? (
                                     <>
-                                        <Card className="transition-opacity duration-500">
+                                       <Card className="transition-opacity duration-500">
                                             <CardContent className="p-4 text-center">
                                                 <div className="flex flex-col items-center">
                                                     <img src={matchProfile[4]} alt={matchProfile[0]} className="object-cover w-32 h-32 mx-auto rounded-full mb-4 border-4 border-indigo-500" />
                                                     <p className="text-3xl font-bold text-gray-900 mb-2">{matchProfile[0]}</p>
-                                                    <p className="text-sm text-gray-600 mb-4">{matchProfile[3]}</p>
+                                                    <p className="text-sm text-gray-600 mb-4">{matchProfile[2]}</p>
                                                 </div>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
                                                     <div>
                                                         <p className="text-sm text-gray-700"><strong className="font-semibold">About Me:</strong> {matchProfile[1]}</p>
-                                                        <p className="text-sm text-gray-700"><strong className="font-semibold">Interests:</strong> {matchProfile[2]}</p>
+                                                        <p className="text-sm text-gray-700"><strong className="font-semibold">Interests:</strong> {matchProfile[3]}</p>
                                                         <p className="text-sm text-gray-700"><strong className="font-semibold">Location:</strong> {matchProfile[5]}</p>
                                                     </div>
                                                     <div>
@@ -148,10 +157,13 @@ const MatchPageContainer = () => {
                         </div>
                         <div className="w-full lg:w-1/3 bg-gray-100 p-4 rounded-lg">
                             <div className="mb-4 bg-gray-200 p-2 rounded">
-                                {recommenderProfile ? `You have ${profiles.length  ? profiles.length : 0} profile(s) in recommended` : "You have no recommended profiles"}
+                                {recommenderProfile ? `You have ${profiles.length} profile(s) in recommended` : "You have no recommended profiles"}
                             </div>
                             <div className="bg-gray-200 p-2 rounded">
-                                you have {likedProfiles.length} profile(s) in liked list
+                                you have {likedProfiles.length} profile(s) in liked
+                            </div>
+                            <div className="bg-gray-200 p-2 rounded mt-4">
+                                you have {matchedProfiles.length} profile(s) Matched
                             </div>
                             <div className="w-full bg-gray-100 p-4 rounded-lg">
                                 <h2 className="text-xl font-bold mb-4">Recommended By</h2>
