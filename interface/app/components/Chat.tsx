@@ -1,34 +1,62 @@
-'use client';
-
-import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
+import { db } from '../../utils/firebase';
+import { collection, addDoc, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 
 function Chat() {
-    const router = useRouter();
-    const { myAddress, otherUserAddress } = router.query || {};
+    const searchParams = useSearchParams();
+    const myAddress = searchParams.get('myAddress');
+    const otherUserAddress = searchParams.get('otherUserAddress');
 
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
 
     useEffect(() => {
         if (!myAddress || !otherUserAddress) {
-            // Redirect or show an error if addresses are missing
+            // Redirect if addresses are missing
+            // You need to import the useRouter hook at the top of your file to use this
+            // import { useRouter } from 'next/navigation';
+            // const router = useRouter();
             // router.push('/app/connections');
+            return;
         }
+
+        const q = query(
+            collection(db, 'chats'),
+            where('participants', 'array-contains', myAddress),
+            orderBy('timestamp')
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const messagesData = snapshot.docs.map(doc => doc.data());
+            setMessages(messagesData);
+        });
+
+        return () => unsubscribe();
     }, [myAddress, otherUserAddress]);
 
-    const handleSendMessage = () => {
+    const handleSendMessage = async () => {
         if (newMessage.trim()) {
             const message = {
                 sender: myAddress,
                 receiver: otherUserAddress,
                 content: newMessage,
                 timestamp: new Date().toISOString(),
+                participants: [myAddress, otherUserAddress]
             };
-            setMessages([...messages, message]);
-            setNewMessage('');
+
+            try {
+                await addDoc(collection(db, 'chats'), message);
+                setNewMessage('');
+            } catch (error) {
+                console.error('Error sending message: ', error);
+            }
         }
     };
+
+    if (!myAddress || !otherUserAddress) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <div className="w-full max-w-6xl mx-auto p-6">
