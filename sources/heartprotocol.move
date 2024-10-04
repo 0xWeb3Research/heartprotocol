@@ -379,7 +379,7 @@ module heartprotocol::core {
     // send some coins to the profile, some to platform. 
     // get back double on liking. 
     // gotta check if recommendation already exists
-    public fun add_recommendation(account: &signer, recommender: address, match_profile: address) acquires AppState {
+    entry public fun add_recommendation(account: &signer, recommender: address, match_profile: address) acquires AppState {
         let sender = signer::address_of(account);
 
         assert!(exists<AppState>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
@@ -438,7 +438,7 @@ module heartprotocol::core {
     //
     //
 
-    public fun skip_profile(account: &signer, profile: address) acquires AppState {
+    entry public fun skip_profile(account: &signer, profile: address) acquires AppState {
         let sender = signer::address_of(account);
 
         assert!(exists<AppState>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
@@ -468,7 +468,7 @@ module heartprotocol::core {
 
 
     // refactor this function so that recommender is taken from profile (found this out later, as this is a hackthon it's fine ig :) )
-    public fun like_profile(account: &signer, profile: address, recommender: address) acquires AppState {
+    entry public fun like_profile(account: &signer, profile: address, recommender: address) acquires AppState {
         let sender = signer::address_of(account);
 
         assert!(exists<AppState>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
