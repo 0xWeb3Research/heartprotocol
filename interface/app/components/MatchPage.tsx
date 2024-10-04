@@ -160,17 +160,29 @@ const MatchPageContainer = () => {
                                                         <p className="text-3xl font-bold text-gray-900 mb-2">{matchProfile[0]}</p>
                                                         <p className="text-sm text-gray-600 mb-4">{matchProfile[2]}</p>
                                                     </div>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-                                                        <div>
-                                                            <p className="text-sm text-gray-700"><strong className="font-semibold">About Me:</strong> {matchProfile[1]}</p>
-                                                            <p className="text-sm text-gray-700"><strong className="font-semibold">Interests:</strong> {matchProfile[3]}</p>
-                                                            <p className="text-sm text-gray-700"><strong className="font-semibold">Location:</strong> {matchProfile[5]}</p>
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-sm text-gray-700"><strong className="font-semibold">Height:</strong> {matchProfile[6]}</p>
-                                                            <p className="text-sm text-gray-700"><strong className="font-semibold">Gender:</strong> {matchProfile[7]}</p>
-                                                            <p className="text-sm text-gray-700"><strong className="font-semibold">Favorite Chain:</strong> {matchProfile[8]}</p>
-                                                            <p className="text-sm text-gray-700"><strong className="font-semibold">Relationship Type:</strong> {matchProfile[9]}</p>
+                                                    <div className="px-4 pb-4">
+                                                        <div className="flex flex-wrap gap-2">
+                                                            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                                                                About Me: {matchProfile[1]}
+                                                            </span>
+                                                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                                                                Interests: {matchProfile[3]}
+                                                            </span>
+                                                            <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
+                                                                Location: {matchProfile[5]}
+                                                            </span>
+                                                            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                                                                Height: {matchProfile[6]}
+                                                            </span>
+                                                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                                                                Gender: {matchProfile[7]}
+                                                            </span>
+                                                            <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
+                                                                Favorite Chain: {matchProfile[8]}
+                                                            </span>
+                                                            <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
+                                                                Relationship Type: {matchProfile[9]}
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </CardContent>
@@ -187,7 +199,7 @@ const MatchPageContainer = () => {
                                     )}
                                 </div>
                             </div>
-                            <div className="w-full lg:w-1/3 bg-gray-100 p-4 rounded-lg">
+                            <div className="w-full lg:w-1/3 bg-gray-100 p-4 rounded-lg flex flex-col justify-center">
                                 <div className="mb-4 bg-gray-200 p-2 rounded">
                                     {recommenderProfile ? `You have ${profiles.length} profile(s) in recommended` : "You have no recommended profiles"}
                                 </div>

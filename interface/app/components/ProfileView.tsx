@@ -16,17 +16,29 @@ export default function ProfileView({ profile, onEdit, isActivated, onActivate, 
         <h2 className="text-3xl font-bold text-gray-900 mb-2">{profile.name}</h2>
         <p className="text-sm text-gray-600 mb-4">{profile.bio}</p>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <p className="text-sm text-gray-700"><strong className="font-semibold">About Me:</strong> {profile.about_me}</p>
-          <p className="text-sm text-gray-700"><strong className="font-semibold">Interests:</strong> {profile.interests}</p>
-          <p className="text-sm text-gray-700"><strong className="font-semibold">Location:</strong> {profile.location}</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-700"><strong className="font-semibold">Height:</strong> {profile.height}</p>
-          <p className="text-sm text-gray-700"><strong className="font-semibold">Gender:</strong> {profile.gender}</p>
-          <p className="text-sm text-gray-700"><strong className="font-semibold">Favorite Chain:</strong> {profile.favoritechain}</p>
-          <p className="text-sm text-gray-700"><strong className="font-semibold">Relationship Type:</strong> {profile.relationship_type}</p>
+      <div className="px-4 pb-4">
+        <div className="flex flex-wrap gap-2">
+          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+            About Me: {profile.about_me}
+          </span>
+          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+            Interests: {profile.interests}
+          </span>
+          <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
+            Location: {profile.location}
+          </span>
+          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+            Height: {profile.height}
+          </span>
+          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+            Gender: {profile.gender}
+          </span>
+          <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
+            Favorite Chain: {profile.favoritechain}
+          </span>
+          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
+            Relationship Type: {profile.relationship_type}
+          </span>
         </div>
       </div>
       <div className="flex flex-col md:flex-row justify-center items-center mt-4 space-y-2 md:space-y-0 md:space-x-2">
@@ -68,7 +80,7 @@ export default function ProfileView({ profile, onEdit, isActivated, onActivate, 
           type="button"
           className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#EA728C]"
         >
-        Earned: {isNaN(parseInt(profile?.earned)) || parseInt(profile.earned) === 0 ? 0 : parseInt(profile.earned) / 10**8} $APT
+          Earned: {isNaN(parseInt(profile?.earned)) || parseInt(profile.earned) === 0 ? 0 : parseInt(profile.earned) / 10 ** 8} $APT
         </button>
         <button
           type="button"
