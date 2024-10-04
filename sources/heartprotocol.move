@@ -608,7 +608,7 @@ module heartprotocol::core {
             vector::remove(&mut profile_ref.likes, i);
             return
         };
-        i = i + 1;  // Added semicolon here
+        i = i + 1;  
     };
 
     // If the target was not found in the like list, abort with an error
@@ -636,7 +636,7 @@ entry fun admin_remove_from_recommended_list(account: &signer, profile: address,
             vector::remove(&mut profile_ref.recommendations, i);
             return
         };
-        i = i + 1;  // Added semicolon here
+        i = i + 1;  
     };
 
     // If the target was not found in the recommended list, abort with an error
@@ -664,7 +664,7 @@ entry fun admin_remove_from_match_list(account: &signer, profile: address, targe
             vector::remove(&mut profile_ref.matches, i);
             return
         };
-        i = i + 1;  // Added semicolon here
+        i = i + 1;  
     };
 
     // If the target was not found in the match list, abort with an error
