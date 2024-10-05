@@ -21,17 +21,21 @@ function Chat() {
             return;
         }
 
+        // Query to fetch messages involving the current user
         const q = query(
             collection(db, 'chats'),
             where('participants', 'array-contains', myAddress),
             orderBy('timestamp')
         );
 
+        // Listen for real-time updates
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const messagesData = snapshot.docs.map(doc => doc.data());
+            console.log('Fetched messages:', messagesData); // Debug log
             setMessages(messagesData);
         });
 
+        // Cleanup listener on component unmount
         return () => unsubscribe();
     }, [myAddress, otherUserAddress]);
 
@@ -47,6 +51,8 @@ function Chat() {
 
             try {
                 await addDoc(collection(db, 'chats'), message);
+                console.log('Message sent:', message); // Debug log
+                setMessages(prevMessages => [...prevMessages, message]); // Update state immediately
                 setNewMessage('');
             } catch (error) {
                 console.error('Error sending message: ', error);
