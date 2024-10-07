@@ -5,6 +5,9 @@ module heartprotocol::core {
     use aptos_framework::coin::{Self};
     use aptos_framework::aptos_coin::AptosCoin;
     use aptos_std::vector;
+    use aptos_std::hash;
+    use aptos_framework::account;
+    use std::debug;
 
     // Error codes
     const ERROR_PROFILE_ALREADY_EXISTS: u64 = 1;
@@ -23,6 +26,9 @@ module heartprotocol::core {
     const ERROR_PROFILE_NOT_FOUND_IN_LIKES: u64 = 14;
     const ERROR_CANNOT_SUGGEST_SAME_ACCOUNT: u64 = 15;
     const ERROR_CANNOT_SUGGEST_OWN_ACCOUNT: u64 = 16;
+    const ERROR_NOT_MATCHED: u64 = 17;
+    const ERROR_APP_STATE_NOT_INITIALIZED: u64 = 18;
+    const ERROR_PROFILE_ADDRESSES_NOT_INITIALIZED: u64 = 19;
 
 
     const ACTIVATION_COST: u64 = 100_000;
@@ -52,6 +58,10 @@ module heartprotocol::core {
 
     struct Match has store, copy, drop {
         profile: address,
+    }
+
+    struct MatchedAddresses has store, key, drop {
+        matches: vector<vector<u8>>, 
     }
 
     struct Profile has store, copy {
@@ -87,16 +97,25 @@ module heartprotocol::core {
         addresses: vector<address>,
     }
 
-    fun initialize(account: &signer) {
-        if (!exists<AppState>(@heartprotocol)) {
-            move_to(account, AppState {
-                profiles: table::new(),
-            });
-            move_to(account, ProfileAddresses {
-                addresses: vector::empty<address>(),
-            });
-        };
-    }
+  public fun initialize(account: &signer) {
+    let sender = signer::address_of(account);
+    debug::print(&sender);
+    
+    if (!exists<AppState>(@heartprotocol)) {
+        debug::print(&b"Initializing AppState");
+        move_to(account, AppState {
+            profiles: table::new(),
+        });
+        move_to(account, ProfileAddresses {
+            addresses: vector::empty<address>(),
+        });
+        move_to(account, MatchedAddresses {
+            matches: vector::empty<vector<u8>>(),
+        });
+    } else {
+        debug::print(&b"AppState already exists");
+    };
+}
 
     public entry fun create_profile(
         account: &signer,
@@ -110,13 +129,16 @@ module heartprotocol::core {
         gender: String,
         favoritechain: String,
         relationship_type: String,
-    ) acquires AppState, ProfileAddresses  {
+    ) acquires AppState, ProfileAddresses {
         let sender = signer::address_of(account);
 
-        // Initialize if AppState doesn't exist
+        // Explicitly initialize if AppState doesn't exist
         if (!exists<AppState>(@heartprotocol)) {
             initialize(account);
         };
+
+        assert!(exists<AppState>(@heartprotocol), ERROR_APP_STATE_NOT_INITIALIZED);
+        assert!(exists<ProfileAddresses>(@heartprotocol), ERROR_PROFILE_ADDRESSES_NOT_INITIALIZED);
 
         let app_state = borrow_global_mut<AppState>(@heartprotocol);
 
@@ -136,7 +158,7 @@ module heartprotocol::core {
             activated: false,
             matchmaker: false,
             earned: 0,
-            recommendations:  vector::empty<Recommendation>(),
+            recommendations: vector::empty<Recommendation>(),
             is_public: false,
             likes: vector::empty<Like>(),
             matches: vector::empty<Match>(),
@@ -145,6 +167,96 @@ module heartprotocol::core {
         table::add(&mut app_state.profiles, sender, profile);
         let profile_addresses = borrow_global_mut<ProfileAddresses>(@heartprotocol);
         vector::push_back(&mut profile_addresses.addresses, sender);
+    }
+
+    public fun compare_and_hash_addresses(addr1: address, addr2: address): vector<u8> {
+        let combined = vector::empty<u8>();
+        vector::append(&mut combined, account::get_authentication_key(addr1));
+        vector::append(&mut combined, account::get_authentication_key(addr2));
+
+        // Sort the combined bytes
+        sort_bytes(&mut combined);
+
+        // Count occurrences and create result
+        let result = count_and_format(&combined);
+
+        // Hash the result
+        hash::sha3_256(result)
+    }
+
+    // Helper function to sort bytes
+    fun sort_bytes(v: &mut vector<u8>) {
+        let len = vector::length(v);
+        let i = 0;
+        while (i < len) {
+            let j = i + 1;
+            while (j < len) {
+                if (*vector::borrow(v, i) > *vector::borrow(v, j)) {
+                    vector::swap(v, i, j);
+                };
+                j = j + 1;
+            };
+            i = i + 1;
+        };
+    }
+
+    fun count_and_format(v: &vector<u8>): vector<u8> {
+        let result = vector::empty<u8>();
+        let i = 0;
+        let len = vector::length(v);
+
+        while (i < len) {
+            let char = *vector::borrow(v, i);
+            let count = 1;
+            let j = i + 1;
+            while (j < len && *vector::borrow(v, j) == char) {
+                count = count + 1;
+                j = j + 1;
+            };
+            vector::push_back(&mut result, char);
+            vector::push_back(&mut result, (count as u8));
+            i = j;
+        };
+
+        result
+    }
+
+    public fun add_or_check_matched_pair(addr1: address, addr2: address) acquires MatchedAddresses {
+        let hash = compare_and_hash_addresses(addr1, addr2);
+        
+        let matched_addresses = borrow_global_mut<MatchedAddresses>(@heartprotocol);
+        
+        // Only add the hash if it doesn't already exist
+        // This ensures that (x,y) and (y,x) are treated as the same pair
+        if (!vector::contains(&matched_addresses.matches, &hash)) {
+            vector::push_back(&mut matched_addresses.matches, hash);
+        }
+    }
+
+    #[view]
+    public fun are_addresses_matched(addr1: address, addr2: address): bool acquires MatchedAddresses {
+        if (!exists<MatchedAddresses>(@heartprotocol)) {
+            return false
+        };
+
+        let matched_addresses = borrow_global<MatchedAddresses>(@heartprotocol);
+        let hash = compare_and_hash_addresses(addr1, addr2);
+
+       if (vector::contains(&matched_addresses.matches, &hash)) {
+            return true
+        } else {
+            return false
+        }
+    }
+
+    public fun remove_hash(addr1: address, addr2: address) acquires MatchedAddresses {
+        let hash = compare_and_hash_addresses(addr1, addr2);
+        let matched_addresses = borrow_global_mut<MatchedAddresses>(@heartprotocol);
+        
+        let (found, index) = vector::index_of(&matched_addresses.matches, &hash);
+        if (found) {
+            vector::remove(&mut matched_addresses.matches, index);
+        };
     }
 
     #[view]
@@ -481,12 +593,20 @@ module heartprotocol::core {
     // if account not in profile's like list, add to recommendations list, with recommender as recommender
     //
 
-    entry public fun like_profile(account: &signer, profile: address, recommender: address) acquires AppState {
+    entry public fun like_profile(account: &signer, profile: address, recommender: address) acquires AppState, MatchedAddresses {
         let sender = signer::address_of(account);
 
         assert!(exists<AppState>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
 
         let app_state = borrow_global_mut<AppState>(@heartprotocol);
+
+        if (!exists<MatchedAddresses>(@heartprotocol)) {
+            move_to(account, MatchedAddresses {
+                matches: vector::empty<vector<u8>>(),
+            });
+        };
+        
+        assert!(exists<MatchedAddresses>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
 
         assert!(table::contains(&app_state.profiles, sender), ERROR_PROFILE_NOT_FOUND);
         assert!(table::contains(&app_state.profiles, profile), ERROR_PROFILE_NOT_FOUND);
@@ -511,6 +631,8 @@ module heartprotocol::core {
             };
         };
 
+        
+
 
         // Check if account is in profile's like list and update accordingly
         let is_match = {
@@ -523,6 +645,7 @@ module heartprotocol::core {
                     is_match = true;
                     // Remove account from profile's like list
                     vector::remove(&mut profile_ref.likes, j);
+
 
                     // Add account to profile's match list
                     let new_match = Match { profile: sender };
@@ -601,6 +724,7 @@ module heartprotocol::core {
         };
 
         skip_profile(account, profile);
+        add_or_check_matched_pair(sender, profile);
     }
 
     public fun admin_remove_from_like_list(account: &signer, profile: address, target: address) acquires AppState {
@@ -686,10 +810,42 @@ module heartprotocol::core {
         // If the target was not found in the match list, abort with an error
         abort ERROR_PROFILE_NOT_FOUND_IN_MATCHES
     }
-
+    
     #[view]
     public fun get_contract_balance(): u64 {
         coin::balance<AptosCoin>(@heartprotocol)
     }
 
+    
+    entry public fun unmatch(account: &signer, profile_to_unmatch: address) acquires AppState, MatchedAddresses {
+        let sender = signer::address_of(account);
+
+        assert!(exists<AppState>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
+
+        let app_state = borrow_global_mut<AppState>(@heartprotocol);
+
+        assert!(table::contains(&app_state.profiles, sender), ERROR_PROFILE_NOT_FOUND);
+        assert!(table::contains(&app_state.profiles, profile_to_unmatch), ERROR_PROFILE_NOT_FOUND);
+
+        // Check if the profiles are matched before proceeding
+        assert!(are_addresses_matched(sender, profile_to_unmatch), ERROR_NOT_MATCHED);
+
+        // Remove profile_to_unmatch from sender's match list
+        {
+            let sender_profile = table::borrow_mut(&mut app_state.profiles, sender);
+            let (found, index) = vector::index_of(&sender_profile.matches, &Match { profile: profile_to_unmatch });
+            assert!(found, ERROR_NOT_MATCHED);
+            vector::remove(&mut sender_profile.matches, index);
+        };
+
+        // Remove sender from profile_to_unmatch's match list
+        {
+            let profile_ref = table::borrow_mut(&mut app_state.profiles, profile_to_unmatch);
+            let (found, index) = vector::index_of(&profile_ref.matches, &Match { profile: sender });
+            assert!(found, ERROR_NOT_MATCHED);
+            vector::remove(&mut profile_ref.matches, index);
+        };
+
+        remove_hash(sender, profile_to_unmatch);
+    }
 }

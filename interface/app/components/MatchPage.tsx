@@ -90,8 +90,12 @@ const MatchPageContainer = () => {
     };
 
     const handleLike = async () => {
+
+        console.log("matchProfileAddress", matchProfileAddress);
+        console.log("recommenderProfileAddress", recommenderProfileAddress);
+
         try {
-            const payload = {
+            const payload: any = {
                 function: `${moduleAddress}::${moduleName}::like_profile`,
                 functionArguments: [
                     matchProfileAddress,
@@ -114,7 +118,7 @@ const MatchPageContainer = () => {
 
     const handleDislike = async () => {
         try {
-            const payload = {
+            const payload: any = {
                 function: `${moduleAddress}::${moduleName}::skip_profile`,
                 functionArguments: [
                     matchProfileAddress
