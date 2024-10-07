@@ -61,7 +61,7 @@ export const Matchmaker = () => {
 
   const getProfiles = async (userAddress, skip, take) => {
     try {
-      const result = await client.view({
+      const result: any = await client.view({
         payload: {
           function: `${moduleAddress}::${moduleName}::get_paginated_profile_data`,
           typeArguments: [],
@@ -99,7 +99,7 @@ export const Matchmaker = () => {
     console.log("Selected Account:", selectedAccount);
     console.log("Current Profile:", profiles[currentProfileIndex]);
 
-    const payload = {
+    const payload: any = {
       function: `${moduleAddress}::${moduleName}::add_recommendation`,
       functionArguments: [
         selectedAccount?.address,
