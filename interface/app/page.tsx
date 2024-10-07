@@ -30,7 +30,7 @@ const LandingPage = () => {
           <FeatureCard 
             icon={<Heart className="w-12 h-12 text-red-500" />}
             title="Find Love"
-            description="Discover your perfect match using our advanced Web3 algorithms."
+            description="Discover your perfect match using our smart algorithms."
           />
           <FeatureCard 
             icon={<Users className="w-12 h-12 text-blue-500" />}
