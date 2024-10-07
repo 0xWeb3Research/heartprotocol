@@ -7,7 +7,7 @@ module heartprotocol::core {
     use aptos_std::vector;
     use aptos_std::hash;
     use aptos_framework::account;
-
+    use std::debug;
 
     // Error codes
     const ERROR_PROFILE_ALREADY_EXISTS: u64 = 1;
@@ -27,6 +27,8 @@ module heartprotocol::core {
     const ERROR_CANNOT_SUGGEST_SAME_ACCOUNT: u64 = 15;
     const ERROR_CANNOT_SUGGEST_OWN_ACCOUNT: u64 = 16;
     const ERROR_NOT_MATCHED: u64 = 17;
+    const ERROR_APP_STATE_NOT_INITIALIZED: u64 = 18;
+    const ERROR_PROFILE_ADDRESSES_NOT_INITIALIZED: u64 = 19;
 
 
     const ACTIVATION_COST: u64 = 100_000;
@@ -58,8 +60,8 @@ module heartprotocol::core {
         profile: address,
     }
 
-    struct MatchedAddresses has key {
-        matches: vector<vector<u8>>, // Store hashes instead of Match structs
+    struct MatchedAddresses has store, key, drop {
+        matches: vector<vector<u8>>, 
     }
 
     struct Profile has store, copy {
@@ -95,19 +97,25 @@ module heartprotocol::core {
         addresses: vector<address>,
     }
 
-    fun initialize(account: &signer) {
-        if (!exists<AppState>(@heartprotocol)) {
-            move_to(account, AppState {
-                profiles: table::new(),
-            });
-            move_to(account, ProfileAddresses {
-                addresses: vector::empty<address>(),
-            });
-            move_to(account, MatchedAddresses {
-                matches: vector::empty<vector<u8>>(),
-            });
-        };
-    }
+  public fun initialize(account: &signer) {
+    let sender = signer::address_of(account);
+    debug::print(&sender);
+    
+    if (!exists<AppState>(@heartprotocol)) {
+        debug::print(&b"Initializing AppState");
+        move_to(account, AppState {
+            profiles: table::new(),
+        });
+        move_to(account, ProfileAddresses {
+            addresses: vector::empty<address>(),
+        });
+        move_to(account, MatchedAddresses {
+            matches: vector::empty<vector<u8>>(),
+        });
+    } else {
+        debug::print(&b"AppState already exists");
+    };
+}
 
     public entry fun create_profile(
         account: &signer,
@@ -121,13 +129,16 @@ module heartprotocol::core {
         gender: String,
         favoritechain: String,
         relationship_type: String,
-    ) acquires AppState, ProfileAddresses  {
+    ) acquires AppState, ProfileAddresses {
         let sender = signer::address_of(account);
 
-        // Initialize if AppState doesn't exist
+        // Explicitly initialize if AppState doesn't exist
         if (!exists<AppState>(@heartprotocol)) {
             initialize(account);
         };
+
+        assert!(exists<AppState>(@heartprotocol), ERROR_APP_STATE_NOT_INITIALIZED);
+        assert!(exists<ProfileAddresses>(@heartprotocol), ERROR_PROFILE_ADDRESSES_NOT_INITIALIZED);
 
         let app_state = borrow_global_mut<AppState>(@heartprotocol);
 
@@ -147,7 +158,7 @@ module heartprotocol::core {
             activated: false,
             matchmaker: false,
             earned: 0,
-            recommendations:  vector::empty<Recommendation>(),
+            recommendations: vector::empty<Recommendation>(),
             is_public: false,
             likes: vector::empty<Like>(),
             matches: vector::empty<Match>(),
@@ -589,6 +600,14 @@ module heartprotocol::core {
 
         let app_state = borrow_global_mut<AppState>(@heartprotocol);
 
+        if (!exists<MatchedAddresses>(@heartprotocol)) {
+            move_to(account, MatchedAddresses {
+                matches: vector::empty<vector<u8>>(),
+            });
+        };
+        
+        assert!(exists<MatchedAddresses>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
+
         assert!(table::contains(&app_state.profiles, sender), ERROR_PROFILE_NOT_FOUND);
         assert!(table::contains(&app_state.profiles, profile), ERROR_PROFILE_NOT_FOUND);
         assert!(table::contains(&app_state.profiles, recommender), ERROR_PROFILE_NOT_FOUND);
@@ -627,7 +646,6 @@ module heartprotocol::core {
                     // Remove account from profile's like list
                     vector::remove(&mut profile_ref.likes, j);
 
-                    add_or_check_matched_pair(sender, profile);
 
                     // Add account to profile's match list
                     let new_match = Match { profile: sender };
@@ -706,6 +724,7 @@ module heartprotocol::core {
         };
 
         skip_profile(account, profile);
+        add_or_check_matched_pair(sender, profile);
     }
 
     public fun admin_remove_from_like_list(account: &signer, profile: address, target: address) acquires AppState {

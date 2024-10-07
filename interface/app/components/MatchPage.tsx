@@ -90,6 +90,10 @@ const MatchPageContainer = () => {
     };
 
     const handleLike = async () => {
+
+        console.log("matchProfileAddress", matchProfileAddress);
+        console.log("recommenderProfileAddress", recommenderProfileAddress);
+
         try {
             const payload: any = {
                 function: `${moduleAddress}::${moduleName}::like_profile`,
