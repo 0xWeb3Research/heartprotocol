@@ -13,7 +13,7 @@ const moduleAddress = process.env.NEXT_PUBLIC_MODULE_ADDRESS;
 const moduleName = "core";
 
 function Connection() {
-    const { account } = useWallet();
+    const { account, signAndSubmitTransaction } = useWallet();
     const [profiles, setProfiles] = useState([]);
     const [myAddress, setMyAddress] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -83,9 +83,24 @@ function Connection() {
     }
 
     const handleUnmatch = async (address: string) => {
-       
-        console.log(`Unmatch ${address}`);
-    }
+        console.log("Unmatching profile", address);
+
+        const payload: any = {
+            function: `${moduleAddress}::${moduleName}::unmatch`,
+            typeArguments: [],
+            functionArguments: [address],
+        };
+
+        try {
+            const response = await signAndSubmitTransaction({ data: payload });
+            console.log(response, "response");
+
+            // Remove the unmatched profile from the list
+            setProfiles((prevProfiles) => prevProfiles.filter(profile => profile.address !== address));
+        } catch (error) {
+            console.error("Error unmatching profile:", error);
+        }
+    };
 
     return (
         <div className="w-full max-w-6xl mx-auto">
@@ -111,15 +126,15 @@ function Connection() {
                         </div>
                         <button
                             onClick={() => handleChatClick(profile.address)}
-                            className="w-full bg-pink-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-pink-600 transition duration-300"
+                            className="w-full bg-pink-500 text-white px-6 py-3  shadow-md hover:bg-pink-600 transition duration-300"
                         >
                             Chat
                         </button>
                         <button
                             onClick={() => handleUnmatch(profile.address)}
                             className="absolute top-2 right-2 text-gray-500 hover:text-red-500 transition duration-300"
-                        >
-                            <Trash size={24} />
+                        ><div className='p-4'> <Trash size={24} />
+                        </div>
                         </button>
                     </div>
                 ))}

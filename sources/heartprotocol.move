@@ -808,38 +808,23 @@ module heartprotocol::core {
         assert!(table::contains(&app_state.profiles, sender), ERROR_PROFILE_NOT_FOUND);
         assert!(table::contains(&app_state.profiles, profile_to_unmatch), ERROR_PROFILE_NOT_FOUND);
 
+        // Check if the profiles are matched before proceeding
+        assert!(are_addresses_matched(sender, profile_to_unmatch), ERROR_NOT_MATCHED);
+
         // Remove profile_to_unmatch from sender's match list
         {
             let sender_profile = table::borrow_mut(&mut app_state.profiles, sender);
-            let i = 0;
-            let match_found = false;
-            while (i < vector::length(&sender_profile.matches)) {
-                let match_profile = vector::borrow(&sender_profile.matches, i);
-                if (match_profile.profile == profile_to_unmatch) {
-                    vector::remove(&mut sender_profile.matches, i);
-                    match_found = true;
-                    break
-                };
-                i = i + 1;
-            };
-            assert!(match_found, ERROR_NOT_MATCHED);
+            let (found, index) = vector::index_of(&sender_profile.matches, &Match { profile: profile_to_unmatch });
+            assert!(found, ERROR_NOT_MATCHED);
+            vector::remove(&mut sender_profile.matches, index);
         };
 
         // Remove sender from profile_to_unmatch's match list
         {
             let profile_ref = table::borrow_mut(&mut app_state.profiles, profile_to_unmatch);
-            let j = 0;
-            let match_found = false;
-            while (j < vector::length(&profile_ref.matches)) {
-                let match_profile = vector::borrow(&profile_ref.matches, j);
-                if (match_profile.profile == sender) {
-                    vector::remove(&mut profile_ref.matches, j);
-                    match_found = true;
-                    break
-                };
-                j = j + 1;
-            };
-            assert!(match_found, ERROR_NOT_MATCHED);
+            let (found, index) = vector::index_of(&profile_ref.matches, &Match { profile: sender });
+            assert!(found, ERROR_NOT_MATCHED);
+            vector::remove(&mut profile_ref.matches, index);
         };
 
         remove_hash(sender, profile_to_unmatch);
