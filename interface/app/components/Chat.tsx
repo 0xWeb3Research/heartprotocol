@@ -1,15 +1,44 @@
 import { useSearchParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { db } from '../../utils/firebase';
+import { useWallet } from "@aptos-labs/wallet-adapter-react";
+import { Aptos, AptosConfig, EntryFunctionArgument, Network } from "@aptos-labs/ts-sdk";
 import { collection, addDoc, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 
+const aptosConfig = new AptosConfig({ network: Network.TESTNET });
+const client = new Aptos(aptosConfig);
+
+const moduleAddress = process.env.NEXT_PUBLIC_MODULE_ADDRESS;
+const moduleName = "core";
+
 function Chat() {
+    const { account } = useWallet();
     const searchParams = useSearchParams();
     const myAddress = searchParams.get('myAddress');
     const otherUserAddress = searchParams.get('otherUserAddress');
 
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
+    const [myProfile, setMyProfile] = useState(null);
+    const [otherUserProfile, setOtherUserProfile] = useState(null);
+
+    const getProfile = async (userAddress: string | any) => {
+        try {
+            const result = await client.view({
+                payload: {
+                    function: `${moduleAddress}::${moduleName}::get_profile`,
+                    typeArguments: [],
+                    functionArguments: [userAddress],
+                },
+            });
+
+            console.log("getProfile result", result);
+            return result;
+        } catch (error) {
+            console.error("Error fetching profile:", error);
+            return null;
+        }
+    };
 
     useEffect(() => {
         if (!myAddress || !otherUserAddress) {
@@ -39,6 +68,21 @@ function Chat() {
         return () => unsubscribe();
     }, [myAddress, otherUserAddress]);
 
+    useEffect(() => {
+        const loadProfiles = async () => {
+            if (myAddress) {
+                const profile = await getProfile(myAddress);
+                setMyProfile(profile);
+            }
+            if (otherUserAddress) {
+                const profile = await getProfile(otherUserAddress);
+                setOtherUserProfile(profile);
+            }
+        };
+
+        loadProfiles();
+    }, [myAddress, otherUserAddress]);
+
     const handleSendMessage = async () => {
         if (newMessage.trim()) {
             const message = {
@@ -63,17 +107,30 @@ function Chat() {
     if (!myAddress || !otherUserAddress) {
         return <div>Loading...</div>;
     }
-
+    
     return (
         <div className="w-full max-w-6xl mx-auto p-6">
-            <h1 className="text-xl font-bold mb-6">Chat between {myAddress} and {otherUserAddress}</h1>
+            <h1 className="text-xl font-bold mb-6">
+                You're chatting with {otherUserProfile ? otherUserProfile[0] : 'Loading...'}
+            </h1>
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                 <div className="h-96 overflow-y-auto mb-4">
                     {messages.map((message, index) => (
                         <div key={index} className={`mb-2 p-2 rounded ${message.sender === myAddress ? 'bg-blue-100' : 'bg-gray-100'}`}>
-                            <p className="text-sm text-gray-600">{message.sender === myAddress ? 'You' : 'Other User'}:</p>
-                            <p className="text-md">{message.content}</p>
-                            <p className="text-xs text-gray-400">{new Date(message.timestamp).toLocaleTimeString()}</p>
+                            <div className="flex items-center">
+                                <img
+                                    src={message.sender === myAddress ? myProfile[4] : otherUserProfile[4]}
+                                    alt="Profile"
+                                    className="w-8 h-8 rounded-full mr-2 object-cover"
+                                />
+                                <div>
+                                    <p className="text-sm text-gray-600">
+                                        {message.sender === myAddress ? 'You' : otherUserProfile ? otherUserProfile[0] : 'Other User'}:
+                                    </p>
+                                    <p className="text-md">{message.content}</p>
+                                    <p className="text-xs text-gray-400">{new Date(message.timestamp).toLocaleTimeString()}</p>
+                                </div>
+                            </div>
                         </div>
                     ))}
                 </div>
