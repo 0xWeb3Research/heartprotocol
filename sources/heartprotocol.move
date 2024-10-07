@@ -230,7 +230,11 @@ module heartprotocol::core {
         let matched_addresses = borrow_global<MatchedAddresses>(@heartprotocol);
         let hash = compare_and_hash_addresses(addr1, addr2);
 
-        vector::contains(&matched_addresses.matches, &hash)
+       if (vector::contains(&matched_addresses.matches, &hash)) {
+            return true
+        } else {
+            return false
+        }
     }
 
     public fun remove_hash(addr1: address, addr2: address) acquires MatchedAddresses {
