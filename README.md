@@ -2,7 +2,7 @@
 > Find your soulmate and earn rewards for helping others find love in the decentralized world.
 
 ## 🌟 What is Heart Protocol?
-Heart Protocol is a revolutionary decentralized dating platform built on the Aptos blockchain. It combines the power of blockchain technology with the universal quest for love, creating a unique ecosystem where users can find their perfect match while earning rewards for participating in the matchmaking process.
+We're basically mashing up dating apps with crypto rewards, and throwing in a dash of community matchmaking for good measure. It's pretty wild when you think about it - people can actually earn tokens for playing cupid! Even if you're just chilling on the platform, you might score some crypto if someone recommends you. We're not just building another DeFi thing or an NFT project - we're trying to help people find love while earning crypto. 
 
 ## ✨ Key Features
 - 🔐 Decentralized profiles
