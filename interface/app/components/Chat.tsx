@@ -74,7 +74,7 @@ function Chat() {
         }
 
         checkMatchInContract(myAddress, otherUserAddress).then((result: any) => {
-            const  isMatched = result as boolean;
+            const isMatched = result as boolean;
 
             if (!isMatched) {
                 router.push('/app/connections');
@@ -130,8 +130,7 @@ function Chat() {
             try {
                 await addDoc(collection(db, 'chats'), message);
                 console.log('Message sent:', message); // Debug log
-                setMessages(prevMessages => [...prevMessages, message]); // Update state immediately
-                setNewMessage('');
+                setNewMessage(''); // Clear the input field
             } catch (error) {
                 console.error('Error sending message: ', error);
             }
