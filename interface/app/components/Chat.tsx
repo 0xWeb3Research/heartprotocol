@@ -1,8 +1,8 @@
 import { useSearchParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { db } from '../../utils/firebase';
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
-import { Aptos, AptosConfig, EntryFunctionArgument, Network } from "@aptos-labs/ts-sdk";
+import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 import { collection, addDoc, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import Loading from './Loading';
@@ -13,7 +13,7 @@ const client = new Aptos(aptosConfig);
 const moduleAddress = process.env.NEXT_PUBLIC_MODULE_ADDRESS;
 const moduleName = "core";
 
-function Chat() {
+function ChatComponent() {
     const { account } = useWallet();
     const searchParams = useSearchParams();
     const myAddress = searchParams.get('myAddress');
@@ -184,6 +184,14 @@ function Chat() {
                 </div>
             </div>
         </div>
+    );
+}
+
+function Chat() {
+    return (
+        <Suspense fallback={<Loading />}>
+            <ChatComponent />
+        </Suspense>
     );
 }
 
