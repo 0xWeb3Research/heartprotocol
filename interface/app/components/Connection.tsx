@@ -5,6 +5,7 @@ import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 import { useRouter } from 'next/navigation';
 import { Trash } from 'lucide-react';
+import Loading from './Loading';
 
 const aptosConfig = new AptosConfig({ network: Network.TESTNET });
 const client = new Aptos(aptosConfig);
@@ -79,7 +80,7 @@ function Connection() {
     };
 
     if (loading) {
-        return <div>Loading...</div>;
+        return <Loading />;
     }
 
     const handleUnmatch = async (address: string) => {
