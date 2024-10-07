@@ -55,4 +55,4 @@ Heart Protocol is released under the [MIT License](LICENSE). Don't worry, we won
 
 ---
 
-Built with 💖 (and maybe a few too many energy drinks) by the Heart Protocol crew
+Built with 💖 (and maybe a few too many energy drinks) by sidharth.co 
