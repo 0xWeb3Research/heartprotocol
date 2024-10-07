@@ -26,6 +26,7 @@ module heartprotocol::core {
     const ERROR_PROFILE_NOT_FOUND_IN_LIKES: u64 = 14;
     const ERROR_CANNOT_SUGGEST_SAME_ACCOUNT: u64 = 15;
     const ERROR_CANNOT_SUGGEST_OWN_ACCOUNT: u64 = 16;
+    const ERROR_NOT_MATCHED: u64 = 17;
 
 
     const ACTIVATION_COST: u64 = 100_000;
@@ -581,7 +582,7 @@ module heartprotocol::core {
     // if account not in profile's like list, add to recommendations list, with recommender as recommender
     //
 
-    entry public fun like_profile(account: &signer, profile: address, recommender: address) acquires AppState {
+    entry public fun like_profile(account: &signer, profile: address, recommender: address) acquires AppState, MatchedAddresses {
         let sender = signer::address_of(account);
 
         assert!(exists<AppState>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
@@ -611,6 +612,8 @@ module heartprotocol::core {
             };
         };
 
+        
+
 
         // Check if account is in profile's like list and update accordingly
         let is_match = {
@@ -623,6 +626,8 @@ module heartprotocol::core {
                     is_match = true;
                     // Remove account from profile's like list
                     vector::remove(&mut profile_ref.likes, j);
+
+                    add_or_check_matched_pair(sender, profile);
 
                     // Add account to profile's match list
                     let new_match = Match { profile: sender };
@@ -786,10 +791,57 @@ module heartprotocol::core {
         // If the target was not found in the match list, abort with an error
         abort ERROR_PROFILE_NOT_FOUND_IN_MATCHES
     }
-
+    
     #[view]
     public fun get_contract_balance(): u64 {
         coin::balance<AptosCoin>(@heartprotocol)
     }
 
+    
+    entry public fun unmatch(account: &signer, profile_to_unmatch: address) acquires AppState, MatchedAddresses {
+        let sender = signer::address_of(account);
+
+        assert!(exists<AppState>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
+
+        let app_state = borrow_global_mut<AppState>(@heartprotocol);
+
+        assert!(table::contains(&app_state.profiles, sender), ERROR_PROFILE_NOT_FOUND);
+        assert!(table::contains(&app_state.profiles, profile_to_unmatch), ERROR_PROFILE_NOT_FOUND);
+
+        // Remove profile_to_unmatch from sender's match list
+        {
+            let sender_profile = table::borrow_mut(&mut app_state.profiles, sender);
+            let i = 0;
+            let match_found = false;
+            while (i < vector::length(&sender_profile.matches)) {
+                let match_profile = vector::borrow(&sender_profile.matches, i);
+                if (match_profile.profile == profile_to_unmatch) {
+                    vector::remove(&mut sender_profile.matches, i);
+                    match_found = true;
+                    break
+                };
+                i = i + 1;
+            };
+            assert!(match_found, ERROR_NOT_MATCHED);
+        };
+
+        // Remove sender from profile_to_unmatch's match list
+        {
+            let profile_ref = table::borrow_mut(&mut app_state.profiles, profile_to_unmatch);
+            let j = 0;
+            let match_found = false;
+            while (j < vector::length(&profile_ref.matches)) {
+                let match_profile = vector::borrow(&profile_ref.matches, j);
+                if (match_profile.profile == sender) {
+                    vector::remove(&mut profile_ref.matches, j);
+                    match_found = true;
+                    break
+                };
+                j = j + 1;
+            };
+            assert!(match_found, ERROR_NOT_MATCHED);
+        };
+
+        remove_hash(sender, profile_to_unmatch);
+    }
 }

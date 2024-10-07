@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 import { useRouter } from 'next/navigation';
+import { Trash } from 'lucide-react';
 
 const aptosConfig = new AptosConfig({ network: Network.TESTNET });
 const client = new Aptos(aptosConfig);
@@ -81,12 +82,17 @@ function Connection() {
         return <div>Loading...</div>;
     }
 
+    const handleUnmatch = async (address: string) => {
+       
+        console.log(`Unmatch ${address}`);
+    }
+
     return (
         <div className="w-full max-w-6xl mx-auto">
             <h1 className="text-xl font-bold mb-6">Your matched profiles</h1>
             <div className="grid grid-cols-1 gap-6">
                 {profiles.map((profile, index) => (
-                    <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col justify-between">
+                    <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col justify-between relative">
                         <div className="p-6 flex items-start space-x-4 flex-grow">
                             <div className="w-52 h-52 bg-gray-300 rounded-md flex-shrink-0">
                                 <img src={profile.data[4]} alt="Profile" className="w-full h-full object-cover" />
@@ -105,9 +111,15 @@ function Connection() {
                         </div>
                         <button
                             onClick={() => handleChatClick(profile.address)}
-                            className="w-full bg-[#EA728C] text-white ml-2 px-6 py-3 rounded-lg shadow-md hover:bg-pink-600 outline-none focus:ring-2 ring-pink-400 focus:ring-opacity-75 transition duration-300 ease-in-out transform scale-110"
+                            className="w-full bg-pink-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-pink-600 transition duration-300"
                         >
                             Chat
+                        </button>
+                        <button
+                            onClick={() => handleUnmatch(profile.address)}
+                            className="absolute top-2 right-2 text-gray-500 hover:text-red-500 transition duration-300"
+                        >
+                            <Trash size={24} />
                         </button>
                     </div>
                 ))}
