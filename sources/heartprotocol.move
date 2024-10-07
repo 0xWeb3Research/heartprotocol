@@ -5,6 +5,9 @@ module heartprotocol::core {
     use aptos_framework::coin::{Self};
     use aptos_framework::aptos_coin::AptosCoin;
     use aptos_std::vector;
+    use aptos_std::hash;
+    use aptos_framework::account;
+
 
     // Error codes
     const ERROR_PROFILE_ALREADY_EXISTS: u64 = 1;
@@ -54,6 +57,10 @@ module heartprotocol::core {
         profile: address,
     }
 
+    struct MatchedAddresses has key {
+        matches: vector<vector<u8>>, // Store hashes instead of Match structs
+    }
+
     struct Profile has store, copy {
         name: String,
         bio: String,
@@ -94,6 +101,9 @@ module heartprotocol::core {
             });
             move_to(account, ProfileAddresses {
                 addresses: vector::empty<address>(),
+            });
+            move_to(account, MatchedAddresses {
+                matches: vector::empty<vector<u8>>(),
             });
         };
     }
@@ -145,6 +155,92 @@ module heartprotocol::core {
         table::add(&mut app_state.profiles, sender, profile);
         let profile_addresses = borrow_global_mut<ProfileAddresses>(@heartprotocol);
         vector::push_back(&mut profile_addresses.addresses, sender);
+    }
+
+    public fun compare_and_hash_addresses(addr1: address, addr2: address): vector<u8> {
+        let combined = vector::empty<u8>();
+        vector::append(&mut combined, account::get_authentication_key(addr1));
+        vector::append(&mut combined, account::get_authentication_key(addr2));
+
+        // Sort the combined bytes
+        sort_bytes(&mut combined);
+
+        // Count occurrences and create result
+        let result = count_and_format(&combined);
+
+        // Hash the result
+        hash::sha3_256(result)
+    }
+
+    // Helper function to sort bytes
+    fun sort_bytes(v: &mut vector<u8>) {
+        let len = vector::length(v);
+        let i = 0;
+        while (i < len) {
+            let j = i + 1;
+            while (j < len) {
+                if (*vector::borrow(v, i) > *vector::borrow(v, j)) {
+                    vector::swap(v, i, j);
+                };
+                j = j + 1;
+            };
+            i = i + 1;
+        };
+    }
+
+    fun count_and_format(v: &vector<u8>): vector<u8> {
+        let result = vector::empty<u8>();
+        let i = 0;
+        let len = vector::length(v);
+
+        while (i < len) {
+            let char = *vector::borrow(v, i);
+            let count = 1;
+            let j = i + 1;
+            while (j < len && *vector::borrow(v, j) == char) {
+                count = count + 1;
+                j = j + 1;
+            };
+            vector::push_back(&mut result, char);
+            vector::push_back(&mut result, (count as u8));
+            i = j;
+        };
+
+        result
+    }
+
+    public fun add_or_check_matched_pair(addr1: address, addr2: address) acquires MatchedAddresses {
+        let hash = compare_and_hash_addresses(addr1, addr2);
+        
+        let matched_addresses = borrow_global_mut<MatchedAddresses>(@heartprotocol);
+        
+        // Only add the hash if it doesn't already exist
+        // This ensures that (x,y) and (y,x) are treated as the same pair
+        if (!vector::contains(&matched_addresses.matches, &hash)) {
+            vector::push_back(&mut matched_addresses.matches, hash);
+        }
+    }
+
+    #[view]
+    public fun are_addresses_matched(addr1: address, addr2: address): bool acquires MatchedAddresses {
+        if (!exists<MatchedAddresses>(@heartprotocol)) {
+            return false
+        };
+
+        let matched_addresses = borrow_global<MatchedAddresses>(@heartprotocol);
+        let hash = compare_and_hash_addresses(addr1, addr2);
+
+        vector::contains(&matched_addresses.matches, &hash)
+    }
+
+    public fun remove_hash(addr1: address, addr2: address) acquires MatchedAddresses {
+        let hash = compare_and_hash_addresses(addr1, addr2);
+        let matched_addresses = borrow_global_mut<MatchedAddresses>(@heartprotocol);
+        
+        let (found, index) = vector::index_of(&matched_addresses.matches, &hash);
+        if (found) {
+            vector::remove(&mut matched_addresses.matches, index);
+        };
     }
 
     #[view]
