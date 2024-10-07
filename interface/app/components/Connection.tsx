@@ -109,12 +109,12 @@ function Connection() {
                 {profiles.map((profile, index) => (
                     <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col justify-between relative">
                         <div className="p-6 flex items-start space-x-4 flex-grow">
-                            <div className="w-52 h-52 bg-gray-300 rounded-md flex-shrink-0">
-                                <img src={profile.data[4]} alt="Profile" className="w-full h-full object-cover" />
+                            <div className="w-32 h-32 sm:w-52 sm:h-52 bg-gray-300 rounded-md flex-shrink-0">
+                                <img src={profile.data[4]} alt="Profile" className="w-full h-full object-cover rounded-md" />
                             </div>
                             <div className="flex-grow">
                                 <h2 className="text-xl font-semibold">{profile.data[0]}</h2>
-                                <p className="text-sm text-gray-600">{profile.data[3]}</p>
+                                <p className="text-sm text-gray-600 mt-2">{profile.data[3]}</p>
                                 <p className="text-sm text-gray-600">Location: {profile.data[5]}</p>
                                 <div className="mt-4 flex flex-wrap gap-2">
                                     <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">Height: {profile.data[6]}</span>
@@ -134,7 +134,7 @@ function Connection() {
                             onClick={() => handleUnmatch(profile.address)}
                             className="absolute top-2 right-2 text-gray-500 hover:text-red-500 transition duration-300"
                         ><div className='p-4'> <Trash size={24} />
-                        </div>
+                            </div>
                         </button>
                     </div>
                 ))}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Shuffle } from 'lucide-react';
 import Button from './ui/CustomButton';
 import { Card, CardContent } from './ui/CustomCard';
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
@@ -71,7 +71,7 @@ export const Matchmaker = () => {
 
       const publicProfiles = result[0].filter(profile => profile.profile.is_public);
       const activatedProfile = publicProfiles.filter(profile => profile.profile.activated);
-      
+
       setProfiles((prevProfiles) => {
         const existingProfileIds = new Set(prevProfiles.map(profile => profile.profile.id));
         const newProfiles = activatedProfile.filter(profile => !existingProfileIds.has(profile.profile.id));
@@ -156,9 +156,10 @@ export const Matchmaker = () => {
           <div className="flex flex-col lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4">
             <div className="w-full lg:w-1/2 bg-gray-100 p-4 rounded-lg">
               <div className="space-y-4">
-                <div className="flex justify-left">
-                  <Button onClick={generateMoreProfiles}>Generate More Profiles</Button>
-                </div>
+                <Button onClick={generateMoreProfiles} className="flex items-center space-x-2">
+                  <Shuffle className="text-white" size={24} />
+                  <span>Generate More Profiles</span>
+                </Button>
                 {profiles.length > 0 && (
                   <Card key={profiles[currentProfileIndex].profile.name} className={`transition-opacity duration-500 ${fade ? 'opacity-0' : 'opacity-100'}`}>
                     <CardContent className="p-4 text-center">
