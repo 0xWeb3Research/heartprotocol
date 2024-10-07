@@ -46,8 +46,5 @@ We welcome contributions to Heart Protocol! Please see our [CONTRIBUTING.md](CON
 ## 📄 License
 Heart Protocol is released under the [MIT License](LICENSE).
 
-## 📞 Contact
-For any queries or support, please reach out to us at support@heartprotocol.com or join our [Discord community](https://discord.gg/heartprotocol).
-
 ---
 Built with ❤️ by the Heart Protocol Team
