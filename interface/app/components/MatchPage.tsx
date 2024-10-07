@@ -3,6 +3,7 @@ import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 import Button from './ui/CustomButton';
 import { Card, CardContent } from './ui/CustomCard';
+import Loading from './Loading';
 
 const aptosConfig = new AptosConfig({ network: Network.TESTNET });
 const client = new Aptos(aptosConfig);
@@ -198,7 +199,7 @@ const MatchPageContainer = () => {
                                         </>
                                     ) : (
                                         <div className="bg-gray-200 h-96 flex items-center justify-center text-2xl font-bold">
-                                            Loading...
+                                            <Loading />
                                         </div>
                                     )}
                                 </div>

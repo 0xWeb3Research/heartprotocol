@@ -44,7 +44,7 @@ function FeesCollected() {
             <h1 className="text-xl font-bold mb-6">Platform Settings</h1>
             <div className="bg-gray-100 p-4 rounded-lg">
                 <div className="bg-gray-200 p-2 rounded">
-                    Platform has collected {feesCollected} APT in fees.
+                    Heart Protocol has collected {feesCollected} APT in fees.
                 </div>
             </div>
         </div>
