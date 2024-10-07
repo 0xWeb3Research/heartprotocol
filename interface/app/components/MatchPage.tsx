@@ -91,7 +91,7 @@ const MatchPageContainer = () => {
 
     const handleLike = async () => {
         try {
-            const payload = {
+            const payload: any = {
                 function: `${moduleAddress}::${moduleName}::like_profile`,
                 functionArguments: [
                     matchProfileAddress,
@@ -114,7 +114,7 @@ const MatchPageContainer = () => {
 
     const handleDislike = async () => {
         try {
-            const payload = {
+            const payload: any = {
                 function: `${moduleAddress}::${moduleName}::skip_profile`,
                 functionArguments: [
                     matchProfileAddress
