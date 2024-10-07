@@ -17,7 +17,7 @@ Heart Protocol is a revolutionary decentralized dating platform built on the Apt
 2. **Activate Your Profile**: Users activate their profile by staking a small amount of APT tokens.
 3. **Become a Matchmaker**: Users can opt to become matchmakers by staking additional tokens, allowing them to recommend matches and earn rewards.
 4. **Recommend Matches**: Matchmakers can suggest potential matches for users, earning rewards if their recommendations lead to successful connections.
-5. **Like and Match**: Users can like profiles recommended to them. If two users like each other, it's a match!
+5. **Like and Match**: Users can like profiles recommended to them. If two users like each other, it's a match! Matched users can chat with each other. 
 6. **Earn Rewards**: Successful matchmakers earn rewards for their recommendations, and users earn rewards for participating in the ecosystem.
 7. **Passive Earning**: Users can earn a small amount of APT tokens simply by being recommended by other users, even if they don't actively participate in matchmaking.
 
