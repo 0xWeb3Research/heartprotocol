@@ -58,7 +58,7 @@ We're always looking for cool people to join the love revolution! Check out our 
 
 ## 📄 Legal Mumbo Jumbo
 
-Heart Protocol is released under the [MIT License](LICENSE). Don't worry, we won't sue you for finding love.
+Don't worry, we won't sue you for finding love.
 
 ---
 
