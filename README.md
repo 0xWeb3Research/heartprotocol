@@ -1,6 +1,13 @@
 # 💞 Heart Protocol
 
-> Find your soulmate and get paid for playing matchmaker. Welcome to love in the crypto age!
+``` 
+Find your soulmate and get paid for playing matchmaker. Welcome to love in the crypto age!
+```
+
+![Heart Protocol (1)](https://github.com/user-attachments/assets/4691c440-4970-49a4-bb10-2889ce6abd21)
+
+> [!NOTE] 
+Heart Protocol's APT amount is lowered for testing in alpha/testnet, but can be easily adjusted in the contract later. 
 
 ## 🌟 What the heck is Heart Protocol?
 
