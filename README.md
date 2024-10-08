@@ -1,7 +1,7 @@
 # 💞 Heart Protocol
 
 ``` 
-Find your soulmate and get paid for playing matchmaker. Welcome to love in the crypto age!
+Find your soulmate and get paid for being matchmaker. Welcome to love in the crypto age!
 ```
 
 ![Heart Protocol (1)](https://github.com/user-attachments/assets/4691c440-4970-49a4-bb10-2889ce6abd21)
