@@ -1,4 +1,9 @@
-# 💞 Heart Protocol
+
+<p align="center">
+<img src="https://github.com/user-attachments/assets/69b9ddac-2a83-475d-a265-182ab83e6276" alt="Heart Protocol" style="width: 25%; text-align: center;"/> 
+</div> 
+
+---
 
 ``` 
 Find your soulmate and get paid for being matchmaker. Welcome to love in the crypto age!
