@@ -8,6 +8,8 @@ module heartprotocol::core {
     use aptos_std::hash;
     use aptos_framework::account;
     use std::debug;
+    use std::option::{Option};
+    
 
     // Error codes
     const ERROR_PROFILE_ALREADY_EXISTS: u64 = 1;
@@ -29,12 +31,13 @@ module heartprotocol::core {
     const ERROR_NOT_MATCHED: u64 = 17;
     const ERROR_APP_STATE_NOT_INITIALIZED: u64 = 18;
     const ERROR_PROFILE_ADDRESSES_NOT_INITIALIZED: u64 = 19;
+    const YOU_HAVE_ALREADY_LIKED_THIS_PROFILE: u64 = 20;
 
 
     const ACTIVATION_COST: u64 = 100_000;
     const MATCHMAKER_COST: u64 = 100_000;
 
-    const LIKING_REWARD: u64 = 100_000;
+    const LIKING_BASE_REWARD: u64 = 100_000;
     const LIKING_PLATFORM_FEE: u64 = 100_000;
 
     const RECOMMENDATION_REWARD: u64 = 100_000;
@@ -50,6 +53,7 @@ module heartprotocol::core {
         recommender: address,
         profile: address,
         match: address,
+        amount: u64,
     }
 
     struct Like has store, copy, drop {
@@ -64,7 +68,7 @@ module heartprotocol::core {
         matches: vector<vector<u8>>, 
     }
 
-    struct Profile has store, copy {
+    struct Profile has store, copy, drop {
         name: String,
         bio: String,
         about_me: String,
@@ -82,6 +86,10 @@ module heartprotocol::core {
         is_public: bool,
         likes: vector<Like>,
         matches: vector<Match>,
+        reward: u64,
+        photo_one: Option<String>,
+        photo_two: Option<String>,
+        photo_three: Option<String>,
     }
 
     struct ProfileWithAddress has store, copy {
@@ -129,6 +137,10 @@ module heartprotocol::core {
         gender: String,
         favoritechain: String,
         relationship_type: String,
+        reward: u64,
+        photo_one: Option<String>,
+        photo_two: Option<String>,
+        photo_three: Option<String>,
     ) acquires AppState, ProfileAddresses {
         let sender = signer::address_of(account);
 
@@ -162,6 +174,10 @@ module heartprotocol::core {
             is_public: false,
             likes: vector::empty<Like>(),
             matches: vector::empty<Match>(),
+            reward,
+            photo_one,
+            photo_two,
+            photo_three,
         };
 
         table::add(&mut app_state.profiles, sender, profile);
@@ -267,6 +283,36 @@ module heartprotocol::core {
         vector::length(&profile_addresses.addresses)
     }
 
+    // given an array of index I want the profiles at those indexes
+
+    #[view]
+    public fun get_profiles_at_indexes(indexes: vector<u64>): vector<ProfileWithAddress> acquires AppState, ProfileAddresses {
+        let profile_addresses = borrow_global<ProfileAddresses>(@heartprotocol);
+        let result = vector::empty<ProfileWithAddress>();
+
+        let i = 0;
+        let len = vector::length(&indexes);
+        while (i < len) {
+            let index = *vector::borrow(&indexes, i);
+            let addr = *vector::borrow(&profile_addresses.addresses, index);
+            let profile = get_profile_internal(addr);
+
+            // Check if the profile is activated and is_public
+            if (profile.activated && profile.is_public) {
+                let profile_with_address = ProfileWithAddress {
+                    address: addr,
+                    profile: profile,
+                };
+                vector::push_back(&mut result, profile_with_address);
+            };
+
+            i = i + 1;
+        };
+
+        result
+    }
+
+
     public fun list_profiles_paginated(start_index: u64, limit: u64): vector<address> acquires ProfileAddresses {
         assert!(exists<ProfileAddresses>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
 
@@ -325,7 +371,7 @@ module heartprotocol::core {
     }
 
     #[view]
-    public fun get_profile(user: address): (String, String, String, String, String, String, String, String, String, String, bool, bool, u64, vector<Recommendation>, bool, vector<Like>, vector<Match>) acquires AppState {
+    public fun get_profile(user: address): (String, String, String, String, String, String, String, String, String, String, bool, bool, u64, vector<Recommendation>, bool, vector<Like>, vector<Match>, u64, Option<String>, Option<String>, Option<String>) acquires AppState {
         assert!(exists<AppState>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
 
         let app_state = borrow_global<AppState>(@heartprotocol);
@@ -350,7 +396,11 @@ module heartprotocol::core {
             profile.recommendations,
             profile.is_public,
             profile.likes,
-            profile.matches
+            profile.matches,
+            profile.reward,
+            profile.photo_one,
+            profile.photo_two,
+            profile.photo_three,
         )
     }
 
@@ -379,6 +429,7 @@ module heartprotocol::core {
         gender: String,
         favoritechain: String,
         relationship_type: String,
+        reward: u64,
     ) acquires AppState {
         let sender = signer::address_of(account);
 
@@ -399,6 +450,7 @@ module heartprotocol::core {
         profile.gender = gender;
         profile.favoritechain = favoritechain;
         profile.relationship_type = relationship_type;
+        profile.reward = reward;
     }
 
     entry public fun activate_profile(account: &signer) acquires AppState {
@@ -493,6 +545,7 @@ module heartprotocol::core {
     // send some coins to the profile, some to platform. 
     // get back double on liking. 
     // gotta check if recommendation already exists
+    // recommender is the one who is being recommended
     entry public fun add_recommendation(account: &signer, recommender: address, match_profile: address) acquires AppState {
         let sender = signer::address_of(account);
 
@@ -529,10 +582,13 @@ module heartprotocol::core {
             i = i + 1;
         };
 
+        let profile_reward = recommender_profile.reward;
+
         let recommendation = Recommendation {
             recommender: sender,
             profile: recommender,
             match: match_profile,
+            amount: profile_reward 
         };
 
         // Add the recommendation to the recommender's list
@@ -632,7 +688,18 @@ module heartprotocol::core {
         };
 
         
-
+        // Check if already in liked list
+        {
+            let sender_profile = table::borrow(&app_state.profiles, sender);
+            let i = 0;
+            while (i < vector::length(&sender_profile.likes)) {
+                let like = vector::borrow(&sender_profile.likes, i);
+                if (like.profile == profile) {
+                    abort YOU_HAVE_ALREADY_LIKED_THIS_PROFILE
+                };
+                i = i + 1;
+            };
+        };
 
         // Check if account is in profile's like list and update accordingly
         let is_match = {
@@ -698,20 +765,46 @@ module heartprotocol::core {
         // recommender: address,
         // profile: address,
         // match: address,
+        // recommender is the who is getting recommedation
         {
-            let profile_ref = table::borrow_mut(&mut app_state.profiles, profile);
             if (!is_match) {
+            let profile_ref = table::borrow_mut(&mut app_state.profiles, profile);
+            let profile_reward = profile_ref.reward;
+
                 // Add sender to profile's recommendation list
-                let recommendation = Recommendation { profile: profile, recommender: recommender, match: sender };
+                let recommendation = Recommendation { profile: profile, recommender: recommender, match: sender, amount: profile_reward};
                 vector::push_back(&mut profile_ref.recommendations, recommendation);
             };
         };
 
+        // RETHINK THE LOGIC BEHIND THIS (MAYBE MAKE IT MORE SECURE)
+        // HAVE THE AMOUNT IN RECOMMENDATION
+
+        // Get the recommnder with account: &signer, profile: address, recommender: address these values and get amount from the recommenation struct
+
+        let profile_ref = table::borrow_mut(&mut app_state.profiles, sender);
+        let recommendation_amount = 0;
+
+        // Iterate through the recommendations to find the matching one
+        let i = 0;
+        let len = vector::length(&profile_ref.recommendations);
+        while (i < len) {
+            let recommendation = vector::borrow(&profile_ref.recommendations, i);
+            if (recommendation.profile == profile && recommendation.recommender == recommender && recommendation.match == sender) {
+                recommendation_amount = recommendation.amount;
+                break
+            };
+
+            i = i + 1;
+        };
+
+        let liking_reward = recommendation_amount;
+
         // Send LIKING_REWARD to the recommender
         let balance = coin::balance<AptosCoin>(sender);
-        assert!(balance >= LIKING_REWARD + LIKING_PLATFORM_FEE, NOT_ENOUGH_BALANCE);
+        assert!(balance >= liking_reward + LIKING_PLATFORM_FEE, NOT_ENOUGH_BALANCE);
 
-        coin::transfer<AptosCoin>(account, recommender, LIKING_REWARD);
+        coin::transfer<AptosCoin>(account, recommender, liking_reward);
 
         // Send LIKING_PLATFORM_FEE to the contract address
         coin::transfer<AptosCoin>(account, @heartprotocol, LIKING_PLATFORM_FEE);
@@ -720,7 +813,7 @@ module heartprotocol::core {
         {
             let recommender_ref = table::borrow_mut(&mut app_state.profiles, recommender);
             // Add LIKING_REWARD to the earned field in the recommender's profile
-            recommender_ref.earned = recommender_ref.earned + LIKING_REWARD;
+            recommender_ref.earned = recommender_ref.earned + liking_reward;
         };
 
         skip_profile(account, profile);
