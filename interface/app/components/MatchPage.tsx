@@ -194,7 +194,7 @@ const MatchPageContainer = () => {
                                                             </span>
                                                             <span className="flex items-center p-1 bg-red-100 text-red-800 rounded-full text-xs">
                                                                 <Sparkle name="sparkle" className="mr-1 text-yellow" />
-                                                                Reward: {amount} $APT
+                                                                Payment: {amount} $APT
                                                             </span>
                                                         </div>
                                                     </div>
@@ -231,6 +231,10 @@ const MatchPageContainer = () => {
                                                     <img src={recommenderProfile[4]} alt={recommenderProfile[0]} className="object-cover w-20 h-20 mx-auto rounded-full mb-4 border-4 border-indigo-500" />
                                                     <p className="text-3xl font-bold text-gray-900 mb-2">{recommenderProfile[0]}</p>
                                                 </div>
+                                                <span className="flex items-center p-1 bg-red-100 text-red-800 rounded-full text-xs">
+                                                                <Sparkle name="sparkle" className="mr-1 text-yellow" />
+                                                                Earned: {recommenderProfile[12] / 10 ** 8} $APT
+                                                            </span>
                                             </CardContent>
                                         </Card>
                                     ) : (

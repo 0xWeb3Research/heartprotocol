@@ -765,7 +765,7 @@ module heartprotocol::core {
             let l = 0;
             while (l < vector::length(&sender_profile_ref.recommendations)) {
                 let recommendation = vector::borrow(&sender_profile_ref.recommendations, l);
-                if (recommendation.profile == profile) {
+                if (recommendation.match == profile && recommendation.recommender == recommender) {
                     vector::remove(&mut sender_profile_ref.recommendations, l);
                     break
                 };
