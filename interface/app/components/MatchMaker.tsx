@@ -236,9 +236,10 @@ export const Matchmaker = () => {
       // If the transaction is successful, move to the next profile
       setFade(true);
       setTimeout(() => {
-        setCurrentProfileIndex((prev) => (prev + 1) % profiles.length);
+        setCurrentProfileIndex((prev) => (prev + 1) % recommendedProfiles.length);
+        moveToNextRecommendedProfile();
         setFade(false);
-      }, 500);
+      }, 1000);
     } catch (error) {
       console.error("Error creating profile:", error);
       // Handle the error appropriately, but do not change the profile index
