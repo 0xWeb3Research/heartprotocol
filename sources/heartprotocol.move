@@ -810,13 +810,11 @@ module heartprotocol::core {
             i = i + 1;
         };
 
-        let liking_reward = recommendation_amount;
-
         // Send LIKING_REWARD to the recommender
         let balance = coin::balance<AptosCoin>(sender);
-        assert!(balance >= liking_reward + LIKING_PLATFORM_FEE, NOT_ENOUGH_BALANCE);
+        assert!(balance >= recommendation_amount + LIKING_PLATFORM_FEE + LIKING_BASE_REWARD, NOT_ENOUGH_BALANCE);
 
-        coin::transfer<AptosCoin>(account, recommender, liking_reward);
+        coin::transfer<AptosCoin>(account, recommender, recommendation_amount);
 
         // Send LIKING_PLATFORM_FEE to the contract address
         coin::transfer<AptosCoin>(account, @heartprotocol, LIKING_PLATFORM_FEE);
@@ -825,7 +823,7 @@ module heartprotocol::core {
         {
             let recommender_ref = table::borrow_mut(&mut app_state.profiles, recommender);
             // Add LIKING_REWARD to the earned field in the recommender's profile
-            recommender_ref.earned = recommender_ref.earned + liking_reward;
+            recommender_ref.earned = recommender_ref.earned + recommendation_amount + LIKING_BASE_REWARD;
         };
 
         skip_profile(account, profile);

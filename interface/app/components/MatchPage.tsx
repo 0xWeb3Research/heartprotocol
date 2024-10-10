@@ -4,6 +4,7 @@ import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 import Button from './ui/CustomButton';
 import { Card, CardContent } from './ui/CustomCard';
 import Loading from './Loading';
+import { Sparkle } from 'lucide-react';
 
 const aptosConfig = new AptosConfig({ network: Network.TESTNET });
 const client = new Aptos(aptosConfig);
@@ -21,6 +22,7 @@ const MatchPageContainer = () => {
     const [profileIndex, setProfileIndex] = useState(0);
     const [matchProfileAddress, setMatchProfileAddress] = useState(null);
     const [recommenderProfileAddress, setRecommenderProfileAddress] = useState(null);
+    const [amount, setAmount] = useState(0);
 
     const getProfile = async (address) => {
         try {
@@ -84,6 +86,8 @@ const MatchPageContainer = () => {
             setRecommenderProfile(recommenderProfileData);
             setRecommenderProfileAddress(profile.recommender);
             setRecommenderProfileAddress(profile.recommender);
+            const convertedAmount = profile.amount / 10 ** 8;
+            setAmount(convertedAmount);
         } else {
             setMatchProfile(null);
             setRecommenderProfile(null);
@@ -188,6 +192,10 @@ const MatchPageContainer = () => {
                                                             <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
                                                                 Relationship Type: {matchProfile[9]}
                                                             </span>
+                                                            <span className="flex items-center p-1 bg-red-100 text-red-800 rounded-full text-xs">
+                                                                <Sparkle name="sparkle" className="mr-1 text-yellow" />
+                                                                Reward: {amount} $APT
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </CardContent>
@@ -238,7 +246,7 @@ const MatchPageContainer = () => {
             ) :
                 (
                     <div className='container mx-auto p-4'>
-                          <h1 className="text-xl font-bold mb-6">Your profile stats</h1>
+                        <h1 className="text-xl font-bold mb-6">Your profile stats</h1>
                         <div className="bg-gray-100 p-4 rounded-lg">
                             <div className="mb-4 bg-gray-200 p-2 rounded">
                                 {recommenderProfile ? `You have ${profiles.length} profile(s) in recommended` : "You have no recommended profiles"}
