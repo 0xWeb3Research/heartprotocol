@@ -37,13 +37,29 @@ const blockchainChains = [
 const heightOptions = ['Short', 'Tall', 'Mid', 'Haha'];
 const weightOptions = ['Heavy', 'Light', 'Feather', 'Haha'];
 
-export default function ProfileForm({ formData, isEditing, loading, onChange, onImageChange, onSubmit, onCancelEdit }) {
+export default function ProfileForm({ formData, isEditing, loading, onChange, onImageChange, onPhotoChange, onSubmit, onCancelEdit }) {
   const [image, setImage] = useState(null);
+  const [photoOne, setPhotoOne] = useState(null);
+  const [photoTwo, setPhotoTwo] = useState(null);
+  const [photoThree, setPhotoThree] = useState(null);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setImage(file);
     onImageChange(file);
+  };
+
+  const handlePhotoChange = (e) => {
+    const { name, files } = e.target;
+    const file = files[0];
+    if (name === 'photo_one') {
+      setPhotoOne(file);
+    } else if (name === 'photo_two') {
+      setPhotoTwo(file);
+    } else if (name === 'photo_three') {
+      setPhotoThree(file);
+    }
+    onPhotoChange(e);
   };
 
   const handleDragOver = (e) => {
@@ -235,7 +251,48 @@ export default function ProfileForm({ formData, isEditing, loading, onChange, on
           <option value="complicated">It's Complicated</option>
         </select>
       </div>
-
+      <div>
+        <label htmlFor="reward" className="block text-sm font-medium text-gray-700">Reward $APT:</label>
+        <input
+          type="number"
+          id="reward"
+          name="reward"
+          value={formData.reward}
+          onChange={onChange}
+          required
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+        />
+      </div>
+      <div>
+        <label htmlFor="photo_one" className="block text-sm font-medium text-gray-700">Photo One:</label>
+        <input
+          type="file"
+          id="photo_one"
+          name="photo_one"
+          onChange={handlePhotoChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+        />
+      </div>
+      <div>
+        <label htmlFor="photo_two" className="block text-sm font-medium text-gray-700">Photo Two:</label>
+        <input
+          type="file"
+          id="photo_two"
+          name="photo_two"
+          onChange={handlePhotoChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+        />
+      </div>
+      <div>
+        <label htmlFor="photo_three" className="block text-sm font-medium text-gray-700">Photo Three:</label>
+        <input
+          type="file"
+          id="photo_three"
+          name="photo_three"
+          onChange={handlePhotoChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+        />
+      </div>
       <div className="flex justify-between">
         <button
           type="submit"

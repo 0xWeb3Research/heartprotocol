@@ -8,7 +8,7 @@ module heartprotocol::core {
     use aptos_std::hash;
     use aptos_framework::account;
     use std::debug;
-    use std::option::{Option};
+    // use std::option::{Option};
     
 
     // Error codes
@@ -87,9 +87,10 @@ module heartprotocol::core {
         likes: vector<Like>,
         matches: vector<Match>,
         reward: u64,
-        photo_one: Option<String>,
-        photo_two: Option<String>,
-        photo_three: Option<String>,
+        photo_one: String,
+        photo_two: String,
+        photo_three: String,
+        weight: String,
     }
 
     struct ProfileWithAddress has store, copy {
@@ -138,9 +139,10 @@ module heartprotocol::core {
         favoritechain: String,
         relationship_type: String,
         reward: u64,
-        photo_one: Option<String>,
-        photo_two: Option<String>,
-        photo_three: Option<String>,
+        photo_one: String,
+        photo_two: String,
+        photo_three: String,
+        weight: String,
     ) acquires AppState, ProfileAddresses {
         let sender = signer::address_of(account);
 
@@ -178,6 +180,7 @@ module heartprotocol::core {
             photo_one,
             photo_two,
             photo_three,
+            weight,
         };
 
         table::add(&mut app_state.profiles, sender, profile);
@@ -371,7 +374,7 @@ module heartprotocol::core {
     }
 
     #[view]
-    public fun get_profile(user: address): (String, String, String, String, String, String, String, String, String, String, bool, bool, u64, vector<Recommendation>, bool, vector<Like>, vector<Match>, u64, Option<String>, Option<String>, Option<String>) acquires AppState {
+    public fun get_profile(user: address): (String, String, String, String, String, String, String, String, String, String, bool, bool, u64, vector<Recommendation>, bool, vector<Like>, vector<Match>, u64, String, String, String, String) acquires AppState {
         assert!(exists<AppState>(@heartprotocol), ERROR_PROFILE_NOT_FOUND);
 
         let app_state = borrow_global<AppState>(@heartprotocol);
@@ -401,6 +404,7 @@ module heartprotocol::core {
             profile.photo_one,
             profile.photo_two,
             profile.photo_three,
+            profile.weight,
         )
     }
 
@@ -430,6 +434,9 @@ module heartprotocol::core {
         favoritechain: String,
         relationship_type: String,
         reward: u64,
+        photo_one: String,
+        photo_two: String,
+        photo_three: String,
     ) acquires AppState {
         let sender = signer::address_of(account);
 
@@ -451,6 +458,9 @@ module heartprotocol::core {
         profile.favoritechain = favoritechain;
         profile.relationship_type = relationship_type;
         profile.reward = reward;
+        profile.photo_one = photo_one;
+        profile.photo_two = photo_two;
+        profile.photo_three = photo_three;
     }
 
     entry public fun activate_profile(account: &signer) acquires AppState {
@@ -594,8 +604,10 @@ module heartprotocol::core {
         // Add the recommendation to the recommender's list
         vector::push_back(&mut recommender_profile.recommendations, recommendation);
 
-        // Ensure the signer has enough balance
         let balance = coin::balance<AptosCoin>(sender);
+
+        // This is the base reward :)
+
         assert!(balance >= RECOMMENDATION_REWARD + RECOMMENDATION_PLATFORM_FEE, NOT_ENOUGH_BALANCE);
 
         // Transfer RECOMMENDATION_COST to the recommender
