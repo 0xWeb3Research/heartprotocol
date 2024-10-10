@@ -762,15 +762,9 @@ module heartprotocol::core {
             };
 
             // Remove from recommendations list
-            let l = 0;
-            while (l < vector::length(&sender_profile_ref.recommendations)) {
-                let recommendation = vector::borrow(&sender_profile_ref.recommendations, l);
-                if (recommendation.match == profile && recommendation.recommender == recommender) {
-                    vector::remove(&mut sender_profile_ref.recommendations, l);
-                    break
-                };
-                l = l + 1;
-            };
+            // skip_profile() does the same!~
+
+
         };
 
         // Update profile's recommendation list
@@ -793,16 +787,18 @@ module heartprotocol::core {
         // HAVE THE AMOUNT IN RECOMMENDATION
 
         // Get the recommnder with account: &signer, profile: address, recommender: address these values and get amount from the recommenation struct
+        // fix this!
 
         let profile_ref = table::borrow_mut(&mut app_state.profiles, sender);
         let recommendation_amount = 0;
 
         // Iterate through the recommendations to find the matching one
+
         let i = 0;
         let len = vector::length(&profile_ref.recommendations);
         while (i < len) {
             let recommendation = vector::borrow(&profile_ref.recommendations, i);
-            if (recommendation.profile == profile && recommendation.recommender == recommender && recommendation.match == sender) {
+            if (recommendation.recommender == recommender && recommendation.match == profile && recommendation.profile == sender) {
                 recommendation_amount = recommendation.amount;
                 break
             };
@@ -826,8 +822,19 @@ module heartprotocol::core {
             recommender_ref.earned = recommender_ref.earned + recommendation_amount + LIKING_BASE_REWARD;
         };
 
-        skip_profile(account, profile);
+        // skip_profile(account, profile);
         add_or_check_matched_pair(sender, profile);
+
+        let sender_profile_ref = table::borrow_mut(&mut app_state.profiles, sender);
+        let l = 0;
+        while (l < vector::length(&sender_profile_ref.recommendations)) {
+        let recommendation = vector::borrow(&sender_profile_ref.recommendations, l);
+        if (recommendation.match == profile && recommendation.recommender == recommender) {
+            vector::remove(&mut sender_profile_ref.recommendations, l);
+            break
+        };
+            l = l + 1;
+        };
     }
 
     public fun admin_remove_from_like_list(account: &signer, profile: address, target: address) acquires AppState {
