@@ -106,6 +106,23 @@ export default function ProfileView({ profile, onEdit, isActivated, onActivate, 
           {publicActivate ? 'Public' : 'Private'}
         </button>
       </div>
+      <div>
+        {profile.photo_one && (
+          <div className='p-2'>
+            <img src={profile.photo_one} alt="Profile" className="w-full h-full object-cover rounded-lg" />
+          </div>
+        )}
+        {profile.photo_two && (
+          <div className='p-2'>
+            <img src={profile.photo_two} alt="Profile" className="w-full h-full object-cover rounded-lg" />
+          </div>
+        )}
+        {profile.photo_three && (
+          <div className='p-2'>
+            <img src={profile.photo_three} alt="Profile" className="w-full h-full object-cover rounded-lg" />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
