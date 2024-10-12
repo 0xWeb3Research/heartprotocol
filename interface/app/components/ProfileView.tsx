@@ -1,4 +1,5 @@
 import React from 'react';
+import { Sparkle } from 'lucide-react';
 
 export default function ProfileView({ profile, onEdit, isActivated, onActivate, onMatchmakerActivate, matchmakerActivated, onPublicActivate, publicActivate }) {
   return (
@@ -30,6 +31,10 @@ export default function ProfileView({ profile, onEdit, isActivated, onActivate, 
           <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
             Height: {profile.height}
           </span>
+          <span className="flex items-center px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">
+            <Sparkle name="sparkle" className="mr-1 text-yellow" />
+            Reward: {profile.reward / 10 ** 8} $APT
+          </span>
           <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
             Gender: {profile.gender}
           </span>
@@ -39,6 +44,10 @@ export default function ProfileView({ profile, onEdit, isActivated, onActivate, 
           <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
             Relationship Type: {profile.relationship_type}
           </span>
+          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+            Weight: {profile.weight}
+          </span>
+
         </div>
       </div>
       <div className="flex flex-col md:flex-row justify-center items-center mt-4 space-y-2 md:space-y-0 md:space-x-2">
@@ -96,6 +105,23 @@ export default function ProfileView({ profile, onEdit, isActivated, onActivate, 
         >
           {publicActivate ? 'Public' : 'Private'}
         </button>
+      </div>
+      <div>
+        {profile.photo_one && (
+          <div className='p-2'>
+            <img src={profile.photo_one} alt="Profile" className="w-full h-full object-cover rounded-lg" />
+          </div>
+        )}
+        {profile.photo_two && (
+          <div className='p-2'>
+            <img src={profile.photo_two} alt="Profile" className="w-full h-full object-cover rounded-lg" />
+          </div>
+        )}
+        {profile.photo_three && (
+          <div className='p-2'>
+            <img src={profile.photo_three} alt="Profile" className="w-full h-full object-cover rounded-lg" />
+          </div>
+        )}
       </div>
     </div>
   );

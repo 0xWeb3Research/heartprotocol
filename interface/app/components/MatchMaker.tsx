@@ -4,6 +4,7 @@ import Button from './ui/CustomButton';
 import { Card, CardContent } from './ui/CustomCard';
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+import { Sparkle } from 'lucide-react';
 
 const aptosConfig = new AptosConfig({ network: Network.TESTNET });
 const client = new Aptos(aptosConfig);
@@ -18,6 +19,10 @@ const ProfileCard = ({ profile, onClick }) => (
     <CardContent className="p-4">
       <img src={profile.image} alt={profile.name} className="object-cover w-32 h-32 sm:w-40 sm:h-40 md:w-52 md:h-52 rounded-full mx-auto" />
       <p className="mt-2 text-center font-semibold">{profile.name}</p>
+      <span className="flex items-center px-2 mt-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">
+        <Sparkle name="sparkle" className="mr-1 text-yellow" />
+        Reward: {profile.reward / 10 ** 8} $APT
+      </span>
     </CardContent>
   </Card>
 );
@@ -52,6 +57,13 @@ const ProfileDetails = ({ profile }) => (
           </span>
           <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
             Relationship Type: {profile.relationship_type}
+          </span>
+          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+            Weight: {profile.weight}
+          </span>
+          <span className="flex items-center px-2 mt-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">
+            <Sparkle name="sparkle" className="mr-1 text-yellow" />
+            Reward: {profile.reward / 10 ** 8} $APT
           </span>
         </div>
       </div>
@@ -117,10 +129,12 @@ export const Matchmaker = () => {
   const [recommendedProfiles, setRecommendedProfiles] = useState([]);
   const [currentRecommendedProfileIndex, setCurrentRecommendedProfileIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [totalProfileCount, setTotalProfileCount] = useState(0);
 
   useEffect(() => {
     if (account) {
-      getProfiles(account?.address, currentPage * accountsPerPage, accountsPerPage);
+      
+      getProfiles();
       ConnectedProfile().then((result) => {
         setWalletConnectedProfile(result);
         setIsMatchmaker(result[11]);
@@ -130,18 +144,55 @@ export const Matchmaker = () => {
 
   useEffect(() => {
     generateMoreRecommendedProfiles();
-  }, []);
+  }, [account]);
 
-  const getProfiles = async (userAddress, skip, take) => {
-    setIsLoading(true);
+  const generateRandomIntegers = (amount: number, max: number): number[] => {
+    const randomIntegers = new Set<number>();
+    let attempts = 0;
+  
+    while (randomIntegers.size < amount && attempts < 20) {
+      const randomInt = Math.floor(Math.random() * max);
+      randomIntegers.add(randomInt);
+      attempts++;
+    }
+  
+    return Array.from(randomIntegers);
+  };
+
+  const getTotalProfiles = async () => {
     try {
       const result: any = await client.view({
         payload: {
-          function: `${moduleAddress}::${moduleName}::get_paginated_profile_data`,
+          function: `${moduleAddress}::${moduleName}::get_total_profiles`,
           typeArguments: [],
-          functionArguments: [skip, take],
+          functionArguments: [],
         },
       });
+
+      const totalCount = result[0] > 0 ? result[0] : 0;
+      setTotalProfileCount(totalCount);
+      return totalCount;
+
+    } catch (error) {
+      console.error("Error fetching total profiles:", error);
+    }
+  }
+
+  const getProfiles = async () => {
+    setIsLoading(true);
+    try {
+      const totalProfileCount = await getTotalProfiles();
+      const randomIndexes = generateRandomIntegers(accountsPerPage, totalProfileCount);
+      console.log("Random recommend  indexes", randomIndexes);
+
+      const result: any = await client.view({
+        payload: {
+          function: `${moduleAddress}::${moduleName}::get_profiles_by_indexes`,
+          typeArguments: [],
+          functionArguments: [randomIndexes],
+        },
+      });
+
 
       const publicProfiles = result[0].filter(profile => profile.profile.is_public);
       const activatedProfile = publicProfiles.filter(profile => profile.profile.activated);
@@ -179,21 +230,29 @@ export const Matchmaker = () => {
   };
 
   const generateMoreProfiles = () => {
-    getProfiles(account?.address, (currentPage + 1) * accountsPerPage, accountsPerPage);
+    getProfiles();
     nextPage();
   };
 
+
+  // REFACTOS THIS FUNCTION SO THAT IT FETCHES RANDOM PROFILES
+  // INSTEAD OF FETCHING PROFILES BY INDEX
+
   const generateMoreRecommendedProfiles = async () => {
     try {
+      const count = totalProfileCount > accountsPerPage ? totalProfileCount : accountsPerPage;
+      const randomIndexes = generateRandomIntegers(accountsPerPage, count);
+      console.log("Random recommend  indexes", randomIndexes);
+
       const result: any = await client.view({
         payload: {
-          function: `${moduleAddress}::${moduleName}::get_paginated_profile_data`,
+          function: `${moduleAddress}::${moduleName}::get_profiles_by_indexes`,
           typeArguments: [],
-          functionArguments: [0, accountsPerPage], // Adjust skip and take as needed
+          functionArguments: [randomIndexes],
         },
       });
 
-      console.log("Recommended profiles", result);
+      console.log("Recommended profiles from indexes", result);
 
       const publicProfiles = result[0].filter(profile => profile.profile.is_public);
       const activatedProfile = publicProfiles.filter(profile => profile.profile.activated);
@@ -207,10 +266,36 @@ export const Matchmaker = () => {
     }
   };
 
+
+
+  // const generateMoreRecommendedProfiles = async () => {
+  //   try {
+  //     const result: any = await client.view({
+  //       payload: {
+  //         function: `${moduleAddress}::${moduleName}::get_paginated_profile_data`,
+  //         typeArguments: [],
+  //         functionArguments: [0, accountsPerPage], // Adjust skip and take as needed
+  //       },
+  //     });
+
+  //     console.log("Recommended profiles", result);
+
+  //     const publicProfiles = result[0].filter(profile => profile.profile.is_public);
+  //     const activatedProfile = publicProfiles.filter(profile => profile.profile.activated);
+
+  //     setRecommendedProfiles(activatedProfile);
+  //     setCurrentRecommendedProfileIndex(0);
+  //   } catch (error) {
+  //     console.error("Error fetching recommended profiles:", error);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
   const handleLike = async () => {
     console.log("selectedAccount", selectedAccount);
     console.log("recommendedProfiles", recommendedProfiles[currentRecommendedProfileIndex]);
-  
+
     const payload: any = {
       function: `${moduleAddress}::${moduleName}::add_recommendation`,
       functionArguments: [
@@ -218,15 +303,16 @@ export const Matchmaker = () => {
         recommendedProfiles[currentRecommendedProfileIndex].address,
       ],
     };
-  
+
     try {
       const response = await signAndSubmitTransaction({ data: payload });
       // If the transaction is successful, move to the next profile
       setFade(true);
       setTimeout(() => {
-        setCurrentProfileIndex((prev) => (prev + 1) % profiles.length);
+        setCurrentProfileIndex((prev) => (prev + 1) % recommendedProfiles.length);
+        moveToNextRecommendedProfile();
         setFade(false);
-      }, 500);
+      }, 1000);
     } catch (error) {
       console.error("Error creating profile:", error);
       // Handle the error appropriately, but do not change the profile index
@@ -239,13 +325,28 @@ export const Matchmaker = () => {
     moveToNextRecommendedProfile();
   };
 
+  // CODE TO ROTATE THROUGH RECOMMENDED PROFILES
+
+  // const moveToNextRecommendedProfile = () => {
+  //   setFade(true);
+  //   setTimeout(() => {
+  //     setCurrentRecommendedProfileIndex((prev) => (prev + 1) % recommendedProfiles.length);
+  //     setFade(false);
+  //   }, 500);
+  // };
+
   const moveToNextRecommendedProfile = () => {
     setFade(true);
     setTimeout(() => {
-      setCurrentRecommendedProfileIndex((prev) => (prev + 1) % recommendedProfiles.length);
-      setFade(false);
+        setRecommendedProfiles((prevProfiles) => {
+            const updatedProfiles = [...prevProfiles];
+            updatedProfiles.splice(currentRecommendedProfileIndex, 1); // Remove the current profile
+            setCurrentRecommendedProfileIndex(0); // Reset index to 0
+            return updatedProfiles;
+        });
+        setFade(false);
     }, 500);
-  };
+};
 
   if (!isMatchmaker) {
     return (

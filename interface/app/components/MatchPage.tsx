@@ -4,6 +4,7 @@ import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 import Button from './ui/CustomButton';
 import { Card, CardContent } from './ui/CustomCard';
 import Loading from './Loading';
+import { Sparkle } from 'lucide-react';
 
 const aptosConfig = new AptosConfig({ network: Network.TESTNET });
 const client = new Aptos(aptosConfig);
@@ -21,6 +22,7 @@ const MatchPageContainer = () => {
     const [profileIndex, setProfileIndex] = useState(0);
     const [matchProfileAddress, setMatchProfileAddress] = useState(null);
     const [recommenderProfileAddress, setRecommenderProfileAddress] = useState(null);
+    const [amount, setAmount] = useState(0);
 
     const getProfile = async (address) => {
         try {
@@ -84,6 +86,8 @@ const MatchPageContainer = () => {
             setRecommenderProfile(recommenderProfileData);
             setRecommenderProfileAddress(profile.recommender);
             setRecommenderProfileAddress(profile.recommender);
+            const convertedAmount = profile.amount / 10 ** 8;
+            setAmount(convertedAmount);
         } else {
             setMatchProfile(null);
             setRecommenderProfile(null);
@@ -153,7 +157,7 @@ const MatchPageContainer = () => {
             {profiles?.length > 0 ? (
                 <div className="flex-grow p-4">
                     <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-                        <div className="flex flex-col lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4">
+                        <div className="flex flex-col lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4 p-4">
                             <div className="w-full lg:w-2/3 bg-gray-100 p-4 rounded-lg">
                                 <div className="space-y-4">
                                     {matchProfile ? (
@@ -188,6 +192,10 @@ const MatchPageContainer = () => {
                                                             <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
                                                                 Relationship Type: {matchProfile[9]}
                                                             </span>
+                                                            <span className="flex items-center p-1 bg-red-100 text-red-800 rounded-full text-xs">
+                                                                <Sparkle name="sparkle" className="mr-1 text-yellow" />
+                                                                Payment: {amount} $APT
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </CardContent>
@@ -195,6 +203,23 @@ const MatchPageContainer = () => {
                                             <div className="mt-4 flex space-x-4">
                                                 <Button className="flex-1 bg-pink-500 py-2 rounded" onClick={handleLike}>Like</Button>
                                                 <Button className="flex-1 bg-[#EA728C] py-2 rounded" onClick={handleDislike}>Skip</Button>
+                                            </div>
+                                            <div className="mt-4">
+                                                {matchProfile[18] && (
+                                                    <div className='p-2'>
+                                                        <img src={matchProfile[18]} alt="Profile" className="w-full h-full object-cover rounded-lg" />
+                                                    </div>
+                                                )}
+                                                {matchProfile[19] && (
+                                                    <div className='p-2'>
+                                                        <img src={matchProfile[19]} alt="Profile" className="w-full h-full object-cover rounded-lg" />
+                                                    </div>
+                                                )}
+                                                {matchProfile[20] && (
+                                                    <div className='p-2'>
+                                                        <img src={matchProfile[20]} alt="Profile" className="w-full h-full object-cover rounded-lg" />
+                                                    </div>
+                                                )}
                                             </div>
                                         </>
                                     ) : (
@@ -204,7 +229,9 @@ const MatchPageContainer = () => {
                                     )}
                                 </div>
                             </div>
-                            <div className="w-full lg:w-1/3 bg-gray-100 p-4 rounded-lg flex flex-col justify-center">
+                            <div>
+                            </div>
+                            <div className="w-full lg:w-1/3 bg-gray-100 p-4 rounded-lg flex flex-col">
                                 <div className="mb-4 bg-gray-200 p-2 rounded">
                                     {recommenderProfile ? `You have ${profiles.length} profile(s) in recommended` : "You have no recommended profiles"}
                                 </div>
@@ -223,6 +250,10 @@ const MatchPageContainer = () => {
                                                     <img src={recommenderProfile[4]} alt={recommenderProfile[0]} className="object-cover w-20 h-20 mx-auto rounded-full mb-4 border-4 border-indigo-500" />
                                                     <p className="text-3xl font-bold text-gray-900 mb-2">{recommenderProfile[0]}</p>
                                                 </div>
+                                                <span className="flex items-center p-1 bg-red-100 text-red-800 rounded-full text-xs">
+                                                    <Sparkle name="sparkle" className="mr-1 text-yellow" />
+                                                    Earned: {recommenderProfile[12] / 10 ** 8} $APT
+                                                </span>
                                             </CardContent>
                                         </Card>
                                     ) : (
@@ -238,7 +269,7 @@ const MatchPageContainer = () => {
             ) :
                 (
                     <div className='container mx-auto p-4'>
-                          <h1 className="text-xl font-bold mb-6">Your profile stats</h1>
+                        <h1 className="text-xl font-bold mb-6">Your profile stats</h1>
                         <div className="bg-gray-100 p-4 rounded-lg">
                             <div className="mb-4 bg-gray-200 p-2 rounded">
                                 {recommenderProfile ? `You have ${profiles.length} profile(s) in recommended` : "You have no recommended profiles"}

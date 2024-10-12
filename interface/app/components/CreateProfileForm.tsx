@@ -32,14 +32,18 @@ export default function ProfileFormContainer() {
     height: '',
     gender: '',
     favoritechain: '',
-    relationship_type: ''
+    relationship_type: '',
+    reward: 0,
+    photo_one: null,
+    photo_two: null,
+    photo_three: null,
+    weight: ''
   });
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (account) {
       checkProfile();
-      // checkActivationStatus();
       checkMatchmakerActivationStatus();
     }
   }, [account]);
@@ -59,19 +63,19 @@ export default function ProfileFormContainer() {
     } catch (error) {
       console.error("Error fetching matchmaker activation status:", error);
     }
-  }     
+  };
 
   const checkActivationStatus = async (profile: any) => {
-      console.log("profile in checkActivationStatus", profile);
-      if (profile && Array.isArray(profile) && profile[10]){
-        console.log("profile[10]", profile[10]);
-        if (profile[10] === true) {
-          setIsActivated(true);
-        }
-      } else {
-        setIsActivated(false);
+    console.log("profile in checkActivationStatus", profile);
+    if (profile && Array.isArray(profile) && profile[10]) {
+      console.log("profile[10]", profile[10]);
+      if (profile[10] === true) {
+        setIsActivated(true);
       }
-  }
+    } else {
+      setIsActivated(false);
+    }
+  };
 
   const checkAppStateInitialized = async () => {
     try {
@@ -112,7 +116,7 @@ export default function ProfileFormContainer() {
 
   const checkPublicStatus = async (profile: any) => {
     console.log("profile in checkPublicStatus", profile);
-    if (profile && Array.isArray(profile) && profile[14]){
+    if (profile && Array.isArray(profile) && profile[14]) {
       console.log("profile[14]", profile[14]);
       if (profile[14] === true) {
         setPublicActivate(true);
@@ -120,7 +124,7 @@ export default function ProfileFormContainer() {
     } else {
       setPublicActivate(false);
     }
-  }
+  };
 
   const checkProfile = async () => {
     try {
@@ -130,8 +134,7 @@ export default function ProfileFormContainer() {
         await checkActivationStatus(profileData);
         await checkPublicStatus(profileData);
 
-
-        console.log("profileData in craeteprofileform", profileData);
+        console.log("profileData in createprofileform", profileData);
         if (profileData && Array.isArray(profileData) && profileData.length >= 2) {
           setProfile({
             name: profileData[0],
@@ -147,6 +150,11 @@ export default function ProfileFormContainer() {
             activated: profileData[10],
             matchmaker: profileData[11],
             earned: profileData[12],
+            reward: profileData[17],
+            photo_one: profileData[18],
+            photo_two: profileData[19],
+            photo_three: profileData[20],
+            weight: profileData[21]
           });
         } else {
           setProfile(null);
@@ -169,6 +177,11 @@ export default function ProfileFormContainer() {
 
   const handleImageChange = (file: any) => {
     setFormData(prev => ({ ...prev, image: file }));
+  };
+
+  const handlePhotoChange = (e: { target: { name: any; files: any; }; }) => {
+    const { name, files } = e.target;
+    setFormData(prev => ({ ...prev, [name]: files[0] }));
   };
 
   const uploadImageToPinata = async (file: string | Blob) => {
@@ -211,6 +224,26 @@ export default function ProfileFormContainer() {
       imageUrl = await uploadImageToPinata(formData.image);
     }
 
+    let photoOneUrl: any = '';
+    if (formData.photo_one) {
+      photoOneUrl = await uploadImageToPinata(formData.photo_one);
+    }
+
+    let photoTwoUrl: any = '';
+    if (formData.photo_two) {
+      photoTwoUrl = await uploadImageToPinata(formData.photo_two);
+    }
+
+    let photoThreeUrl: any = '';
+    if (formData.photo_three) {
+      photoThreeUrl = await uploadImageToPinata(formData.photo_three);
+    }
+
+    let reward = formData.reward;
+    if (reward > 0) {
+      reward *= 10 ** 8;
+    }
+
     const payload: any = {
       function: `${moduleAddress}::${moduleName}::create_profile`,
       functionArguments: [
@@ -223,7 +256,12 @@ export default function ProfileFormContainer() {
         formData.height,
         formData.gender,
         formData.favoritechain,
-        formData.relationship_type
+        formData.relationship_type,
+        reward,
+        photoOneUrl,
+        photoTwoUrl,
+        photoThreeUrl,
+        formData.weight,
       ],
     };
 
@@ -248,7 +286,12 @@ export default function ProfileFormContainer() {
       height: profile.height,
       gender: profile.gender,
       favoritechain: profile.favoritechain,
-      relationship_type: profile.relationship_type
+      relationship_type: profile.relationship_type,
+      reward: profile.reward / 10 ** 8,
+      photo_one: profile.photo_one,
+      photo_two: profile.photo_two,
+      photo_three: profile.photo_three,
+      weight: profile.weight
     });
     setIsEditing(true);
   };
@@ -260,6 +303,21 @@ export default function ProfileFormContainer() {
     let imageUrl: any = formData.image;
     if (formData.image && typeof formData.image !== 'string') {
       imageUrl = await uploadImageToPinata(formData.image);
+    }
+
+    let photoOneUrl: any = formData.photo_one;
+    if (formData.photo_one && typeof formData.photo_one !== 'string') {
+      photoOneUrl = await uploadImageToPinata(formData.photo_one);
+    }
+
+    let photoTwoUrl: any = formData.photo_two;
+    if (formData.photo_two && typeof formData.photo_two !== 'string') {
+      photoTwoUrl = await uploadImageToPinata(formData.photo_two);
+    }
+
+    let photoThreeUrl: any = formData.photo_three;
+    if (formData.photo_three && typeof formData.photo_three !== 'string') {
+      photoThreeUrl = await uploadImageToPinata(formData.photo_three);
     }
 
     const payload: any = {
@@ -274,7 +332,12 @@ export default function ProfileFormContainer() {
         formData.height,
         formData.gender,
         formData.favoritechain,
-        formData.relationship_type
+        String(formData.relationship_type),
+        formData.reward * 10 ** 8,
+        photoOneUrl,
+        photoTwoUrl,
+        photoThreeUrl,
+        // formData.weight,
       ],
     };
 
@@ -302,7 +365,12 @@ export default function ProfileFormContainer() {
       height: profile.height,
       gender: profile.gender,
       favoritechain: profile.favoritechain,
-      relationship_type: profile.relationship_type
+      relationship_type: profile.relationship_type,
+      reward: profile.reward,
+      photo_one: profile.photo_one,
+      photo_two: profile.photo_two,
+      photo_three: profile.photo_three,
+      weight: profile.weight
     });
     setIsEditing(false);
   };
@@ -347,7 +415,7 @@ export default function ProfileFormContainer() {
     }
   };
 
-const handlePublicActivate = async () => {
+  const handlePublicActivate = async () => {
     const payload: any = {
       function: `${moduleAddress}::${moduleName}::toggle_public_status`,
       typeArguments: [],
@@ -363,11 +431,11 @@ const handlePublicActivate = async () => {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 mt-[5%]">
-     <div className="max-w-lg mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-3xl">
+      <div className="max-w-lg mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-3xl">
         <div className="p-8">
           {profile && !isEditing ? (
             <ProfileView
@@ -387,6 +455,7 @@ const handlePublicActivate = async () => {
               loading={loading}
               onChange={handleChange}
               onImageChange={handleImageChange}
+              onPhotoChange={handlePhotoChange}
               onSubmit={isEditing ? handleUpdateSubmit : handleSubmit}
               onCancelEdit={handleCancelEdit}
             />
