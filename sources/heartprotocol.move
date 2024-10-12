@@ -287,33 +287,34 @@ module heartprotocol::core {
     }
 
     // given an array of index I want the profiles at those indexes
+    // Remove this function get_profiles_at_indexes
 
-    #[view]
-    public fun get_profiles_at_indexes(indexes: vector<u64>): vector<ProfileWithAddress> acquires AppState, ProfileAddresses {
-        let profile_addresses = borrow_global<ProfileAddresses>(@heartprotocol);
-        let result = vector::empty<ProfileWithAddress>();
+    // #[view]
+    // public fun get_profiles_at_indexes(indexes: vector<u64>): vector<ProfileWithAddress> acquires AppState, ProfileAddresses {
+    //     let profile_addresses = borrow_global<ProfileAddresses>(@heartprotocol);
+    //     let result = vector::empty<ProfileWithAddress>();
 
-        let i = 0;
-        let len = vector::length(&indexes);
-        while (i < len) {
-            let index = *vector::borrow(&indexes, i);
-            let addr = *vector::borrow(&profile_addresses.addresses, index);
-            let profile = get_profile_internal(addr);
+    //     let i = 0;
+    //     let len = vector::length(&indexes);
+    //     while (i < len) {
+    //         let index = *vector::borrow(&indexes, i);
+    //         let addr = *vector::borrow(&profile_addresses.addresses, index);
+    //         let profile = get_profile_internal(addr);
 
-            // Check if the profile is activated and is_public
-            if (profile.activated && profile.is_public) {
-                let profile_with_address = ProfileWithAddress {
-                    address: addr,
-                    profile: profile,
-                };
-                vector::push_back(&mut result, profile_with_address);
-            };
+    //         // Check if the profile is activated and is_public
+    //         if (profile.activated && profile.is_public) {
+    //             let profile_with_address = ProfileWithAddress {
+    //                 address: addr,
+    //                 profile: profile,
+    //             };
+    //             vector::push_back(&mut result, profile_with_address);
+    //         };
 
-            i = i + 1;
-        };
+    //         i = i + 1;
+    //     };
 
-        result
-    }
+    //     result
+    // }
 
 
     public fun list_profiles_paginated(start_index: u64, limit: u64): vector<address> acquires ProfileAddresses {
@@ -372,6 +373,31 @@ module heartprotocol::core {
 
         result
     }
+
+    #[view]
+    public fun get_profiles_by_indexes(indexes: vector<u64>): vector<ProfileWithAddress> acquires AppState, ProfileAddresses {
+        let result = vector::empty<ProfileWithAddress>();
+
+        let i = 0;
+        let len = vector::length(&indexes);
+        while (i < len) {
+            let index = *vector::borrow(&indexes, i);
+            let profile_addresses = list_profiles_paginated(index, 1);
+            if (vector::length(&profile_addresses) > 0) {
+                let addr = *vector::borrow(&profile_addresses, 0);
+                let profile = get_profile_internal(addr);
+                let profile_with_address = ProfileWithAddress {
+                    address: addr,
+                    profile: profile,
+                };
+                vector::push_back(&mut result, profile_with_address);
+            };
+            i = i + 1;
+        };
+
+        result
+    }
+
 
     #[view]
     public fun get_profile(user: address): (String, String, String, String, String, String, String, String, String, String, bool, bool, u64, vector<Recommendation>, bool, vector<Like>, vector<Match>, u64, String, String, String, String) acquires AppState {
