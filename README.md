@@ -1,4 +1,4 @@
-![Heart Protocol (7)](https://github.com/user-attachments/assets/e9e77063-2e90-4e24-a312-0fd2c6a22fd1)
+
 <p align="center">
 <img src="https://github.com/user-attachments/assets/69b9ddac-2a83-475d-a265-182ab83e6276" alt="Heart Protocol" style="width: 25%; text-align: center;"/> 
 </div> 
@@ -9,7 +9,7 @@
 Find your soulmate and get paid for being matchmaker. Welcome to love in the crypto age!
 ```
 
-![Heart Protocol (7)](https://github.com/user-attachments/assets/8238266a-e07a-46aa-b7c3-7913fe0922fc)
+![Heart Protocol (7)](https://github.com/user-attachments/assets/e9e77063-2e90-4e24-a312-0fd2c6a22fd1)
 
 > [!NOTE] 
 Heart Protocol's APT amount is lowered for testing in alpha/testnet, but can be easily adjusted in the contract later. 
