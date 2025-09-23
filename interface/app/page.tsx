@@ -42,10 +42,15 @@ const LandingPage = () => {
 
         <button
           onClick={handleGetStarted}
-          className="bg-black text-white px-8 py-3 text-lg font-medium hover:bg-gray-800 transition-colors"
+          className="bg-black text-white px-8 py-3 text-lg font-medium hover:bg-gray-800 transition-colors mb-8"
         >
           Get Started
         </button>
+
+        <div className="flex items-center justify-center gap-2 text-m text-gray-500">
+          <span>Built on</span>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/d/d1/Aptos_logo_%282025%29.png" alt="Aptos" className="h-6" />
+        </div>
       </div>
     </div>
   );
